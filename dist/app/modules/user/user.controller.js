@@ -75,26 +75,6 @@ const createAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
-// const createStudent = catchAsync(async (req, res) => {
-//   const { password, student: studentData } = req.body;
-//   const result = await userService.createStudentIntoDB(password, studentData);
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'student created successfully',
-//     data: result,
-//   });
-// });
-// const createTeacher = catchAsync(async (req, res) => {
-//   const { password, teacher: teacherData } = req.body;
-//   const result = await userService.createTeacherIntoDB(password, teacherData);
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'teacher created successfully',
-//     data: result,
-//   });
-// });
 exports.userController = {
     createUser,
     getAllUser,

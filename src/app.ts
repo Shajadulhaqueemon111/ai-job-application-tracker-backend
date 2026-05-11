@@ -11,7 +11,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:3000',
-      'https://quick-hire-job-board-application.vercel.app',
+      'https://ai-job-application-tracker-weld.vercel.app',
     ],
     credentials: true,
   }),

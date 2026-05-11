@@ -45,6 +45,7 @@ const createAdminIntoDB = async (password: string, payload: TAdmin) => {
     role: 'admin',
     email: payload.email,
     name: payload.name,
+    profileImage: payload.profileImage || undefined,
     password,
   };
 

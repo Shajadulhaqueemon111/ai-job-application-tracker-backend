@@ -47,6 +47,7 @@ const createAdminIntoDB = (password, payload) => __awaiter(void 0, void 0, void 
         role: 'admin',
         email: payload.email,
         name: payload.name,
+        profileImage: payload.profileImage || undefined,
         password,
     };
     console.log(userData);

@@ -11,7 +11,7 @@ import { USER_ROLE } from './user.constant';
 const route = express.Router();
 
 route.post(
-  '/create-user',
+  '/register',
 
   validateRequest(UserzodValidationSchema.createUserZodSchema),
   userController.createUser,

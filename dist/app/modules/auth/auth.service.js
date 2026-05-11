@@ -82,6 +82,7 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
         profileImage: user.profileImage,
         status: user.status || 'active',
     };
+    console.log('Decoded JWT Payload:', jwtPayload);
     // Generate new Access Token only
     const newAccessToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_access_secret, config_1.default.jwt_access_expirense_in);
     return {

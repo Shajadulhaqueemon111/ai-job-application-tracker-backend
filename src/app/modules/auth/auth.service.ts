@@ -92,7 +92,7 @@ const refreshToken = async (token: string) => {
     profileImage: user.profileImage,
     status: user.status || 'active',
   };
-
+  console.log('Decoded JWT Payload:', jwtPayload);
   // Generate new Access Token only
   const newAccessToken = createToken(
     jwtPayload,

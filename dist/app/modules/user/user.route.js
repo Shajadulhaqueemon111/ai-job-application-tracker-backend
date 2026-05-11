@@ -14,7 +14,7 @@ const authValidation_1 = __importDefault(require("../../middleware/authValidatio
 const user_constant_1 = require("./user.constant");
 // import { TeacherZodValidationSchema } from '../teacher/teacher.zodvalidation';
 const route = express_1.default.Router();
-route.post('/create-user', (0, validationRequest_1.default)(user_ZodValidation_1.UserzodValidationSchema.createUserZodSchema), user_controller_1.userController.createUser);
+route.post('/register', (0, validationRequest_1.default)(user_ZodValidation_1.UserzodValidationSchema.createUserZodSchema), user_controller_1.userController.createUser);
 route.post('/create-admin', (0, validationRequest_1.default)(admin_zodvalidation_1.adminZodValidationSchema.createAdminValidationSchema), user_controller_1.userController.createAdmin);
 // route.post(
 //   '/create-student',
