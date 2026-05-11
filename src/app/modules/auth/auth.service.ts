@@ -105,19 +105,15 @@ const refreshToken = async (token: string) => {
   };
 };
 const logoutUser = async (res: any) => {
-  res.clearCookie('accessToken', {
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
-  });
+  };
 
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-  });
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
 
   return {
     message: 'Successfully logged out',
