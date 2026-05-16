@@ -3,8 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_route_1 = require("../modules/user/user.route");
 const auth_route_1 = require("../modules/auth/auth.route");
-const route_1 = require("../modules/create-job/route");
 const application_route_1 = require("../modules/application/application.route");
+const admin_route_1 = require("../modules/admin/admin.route");
+const route_1 = require("../modules/create-job/route");
+const hr_route_1 = require("../modules/hr/hr-route");
 const router = (0, express_1.Router)();
 const moduleRouter = [
     {
@@ -16,8 +18,16 @@ const moduleRouter = [
         route: auth_route_1.authRoute,
     },
     {
+        path: '/admin',
+        route: admin_route_1.adminRoute,
+    },
+    {
+        path: '/hr',
+        route: hr_route_1.HRRoutes,
+    },
+    {
         path: '/jobs',
-        route: route_1.JobRoute,
+        route: route_1.JobRoutes,
     },
     {
         path: '/applications',

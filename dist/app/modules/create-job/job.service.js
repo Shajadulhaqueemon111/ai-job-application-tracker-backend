@@ -1,5 +1,4 @@
 "use strict";
-// src/modules/job/job.service.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10,48 +9,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getApplicationsByJobFromDB = exports.createApplicationInDB = exports.deleteJobInDB = exports.createJobInDB = exports.getSingleJobFromDB = exports.getAllJobsFromDB = exports.searchJobsInDB = void 0;
+exports.JobServices = void 0;
 const job_modle_1 = require("./job.modle");
-// JOBS
-const searchJobsInDB = (params) => __awaiter(void 0, void 0, void 0, function* () {
-    const { search, category, location } = params;
-    const filter = {};
-    if (search) {
-        filter.title = { $regex: search, $options: 'i' }; // case-insensitive search
-    }
-    if (category) {
-        filter.category = category;
-    }
-    if (location) {
-        filter.location = location;
-    }
-    return yield job_modle_1.JobModel.find(filter).sort({ createdAt: -1 });
+const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield job_modle_1.JobModel.create(payload);
+    return result;
 });
-exports.searchJobsInDB = searchJobsInDB;
 const getAllJobsFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield job_modle_1.JobModel.find().sort({ createdAt: -1 });
+    const result = yield job_modle_1.JobModel.find().populate('createdBy');
+    return result;
 });
-exports.getAllJobsFromDB = getAllJobsFromDB;
 const getSingleJobFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield job_modle_1.JobModel.findById(id);
+    const result = yield job_modle_1.JobModel.findById(id).populate('createdBy');
+    return result;
 });
-exports.getSingleJobFromDB = getSingleJobFromDB;
-const createJobInDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
-    const job = new job_modle_1.JobModel(data);
-    return yield job.save();
+const updateJobIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield job_modle_1.JobModel.findByIdAndUpdate(id, payload, {
+        new: true,
+        runValidators: true,
+    });
+    return result;
 });
-exports.createJobInDB = createJobInDB;
-const deleteJobInDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield job_modle_1.JobModel.findByIdAndDelete(id);
+const deleteJobFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield job_modle_1.JobModel.findByIdAndDelete(id);
+    return result;
 });
-exports.deleteJobInDB = deleteJobInDB;
-// APPLICATIONS
-const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
-    const application = new job_modle_1.ApplicationModel(data);
-    return yield application.save();
-});
-exports.createApplicationInDB = createApplicationInDB;
-const getApplicationsByJobFromDB = (jobId) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield job_modle_1.ApplicationModel.find({ jobId });
-});
-exports.getApplicationsByJobFromDB = getApplicationsByJobFromDB;
+exports.JobServices = {
+    createJobIntoDB,
+    getAllJobsFromDB,
+    getSingleJobFromDB,
+    deleteJobFromDB,
+    updateJobIntoDB,
+};

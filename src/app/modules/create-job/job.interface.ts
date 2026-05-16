@@ -1,23 +1,47 @@
-// src/modules/job/job.interface.ts
-
 import { Types } from 'mongoose';
 
-export interface IJob {
-  _id?: string;
-  title: string;
-  company: string;
-  location: string;
-  category: string;
-  description: string;
-  createdAt?: Date;
+export interface TCompany {
+  name: string;
+  logo?: string;
+  website?: string;
 }
 
-export interface IApplication {
-  _id?: string;
-  jobId: Types.ObjectId;
-  name: string;
-  email: string;
-  resumeLink: string;
-  coverNote: string;
-  createdAt?: Date;
+export interface TSalary {
+  min: number;
+  max: number;
+  currency: string;
+}
+
+export interface TJob {
+  title: string;
+
+  company: TCompany;
+
+  location: string;
+
+  workType: 'Remote' | 'Hybrid' | 'Onsite';
+
+  employmentType: 'Full-time' | 'Part-time' | 'Internship' | 'Contract';
+
+  experienceLevel: 'Junior' | 'Mid' | 'Senior';
+
+  salary: TSalary;
+
+  skills: string[];
+
+  description: string;
+
+  responsibilities: string[];
+
+  requirements: string[];
+
+  benefits?: string[];
+
+  applicationDeadline: Date;
+
+  totalApplicants?: number;
+
+  createdBy: Types.ObjectId;
+
+  status: 'active' | 'closed';
 }

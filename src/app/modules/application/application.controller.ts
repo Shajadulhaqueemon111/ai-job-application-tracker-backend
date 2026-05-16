@@ -7,7 +7,7 @@ import {
   getAllJobsApplicationFromDB,
   getApplicationsByJobFromDB,
 } from './application.service';
-import { searchJobsInDB } from '../create-job/job.service';
+
 // Global Job Search
 
 // Submit application

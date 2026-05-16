@@ -2,8 +2,10 @@ import { Router } from 'express';
 import { userRouter } from '../modules/user/user.route';
 import { authRoute } from '../modules/auth/auth.route';
 
-import { JobRoute } from '../modules/create-job/route';
 import { ApplicationRoute } from '../modules/application/application.route';
+import { adminRoute } from '../modules/admin/admin.route';
+import { JobRoutes } from '../modules/create-job/route';
+import { HRRoutes } from '../modules/hr/hr-route';
 
 const router = Router();
 const moduleRouter = [
@@ -15,10 +17,17 @@ const moduleRouter = [
     path: '/auth',
     route: authRoute,
   },
-
+  {
+    path: '/admin',
+    route: adminRoute,
+  },
+  {
+    path: '/hr',
+    route: HRRoutes,
+  },
   {
     path: '/jobs',
-    route: JobRoute,
+    route: JobRoutes,
   },
   {
     path: '/applications',

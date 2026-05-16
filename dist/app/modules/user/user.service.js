@@ -18,6 +18,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const appError_1 = __importDefault(require("../../error/appError"));
 const http_status_1 = __importDefault(require("http-status"));
 const admin_modle_1 = __importDefault(require("../admin/admin.modle"));
+const hr_moduels_1 = require("../hr/hr.moduels");
 const createUserIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield user_modle_1.default.create(payload);
     return result;
@@ -76,77 +77,41 @@ const createAdminIntoDB = (password, payload) => __awaiter(void 0, void 0, void 
         throw err;
     }
 });
-// const createStudentIntoDB = async (password: string, payload: TStudent) => {
-//   const userData: Partial<IUser> = {
-//     role: 'student',
-//     name: payload.name,
-//     email: payload.email,
-//     password,
-//   };
-//   console.log(userData);
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   console.log(session);
-//   try {
-//     const newUser = await UserModel.create([userData], { session });
-//     if (!newUser.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'user create failed');
-//     }
-//     const studentPayload = {
-//       ...payload,
-//       user: newUser[0]._id,
-//       profileImage: payload.profileImage || undefined,
-//     };
-//     console.log(studentPayload);
-//     const newStudent = await StudentModle.create([studentPayload], { session });
-//     if (!newStudent.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'student created failed');
-//     }
-//     await session.commitTransaction();
-//     session.endSession();
-//     console.log(newStudent);
-//   } catch (err) {
-//     console.log(err);
-//     await session.abortTransaction();
-//     session.endSession();
-//     throw err;
-//   }
-// };
-// const createTeacherIntoDB = async (password: string, payload: TTeacher) => {
-//   const userData: Partial<IUser> = {
-//     role: 'teacher',
-//     name: payload.name,
-//     email: payload.email,
-//     password,
-//   };
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   console.log(session);
-//   try {
-//     const newUser = await UserModel.create([userData], { session });
-//     if (!newUser.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'user not create');
-//     }
-//     const techerPayload = {
-//       ...payload,
-//       user: newUser[0]._id,
-//       profieImage: payload.profileImage || undefined,
-//     };
-//     console.log(techerPayload);
-//     const newTeacher = await TeacherModle.create([techerPayload], { session });
-//     console.log(newTeacher);
-//     if (!newTeacher.length) {
-//       throw new AppError(httpStatus.OK, 'teacher not created');
-//     }
-//     await session.commitTransaction();
-//     session.endSession();
-//     return newTeacher[0];
-//   } catch (err) {
-//     console.log(err);
-//     await session.abortTransaction();
-//     session.endSession();
-//   }
-// };
+const createHRIntoDB = (password, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const userData = {
+        role: 'hr',
+        email: payload.email,
+        name: payload.name,
+        profileImage: ((_a = payload.company) === null || _a === void 0 ? void 0 : _a.logo) || undefined,
+        password,
+    };
+    console.log(userData);
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    console.log(session);
+    try {
+        const newUser = yield user_modle_1.default.create([userData], { session });
+        if (!newUser.length) {
+            throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'user create failed');
+        }
+        const hrPayload = Object.assign(Object.assign({}, payload), { user: newUser[0]._id, logo: ((_b = payload.company) === null || _b === void 0 ? void 0 : _b.logo) || undefined });
+        console.log(hrPayload);
+        const newHR = yield hr_moduels_1.HRModel.create([hrPayload], { session });
+        if (!newHR.length) {
+            throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'hr created failed');
+        }
+        yield session.commitTransaction();
+        session.endSession();
+        return newHR[0];
+    }
+    catch (err) {
+        console.log(err);
+        yield session.abortTransaction();
+        session.endSession();
+        throw err;
+    }
+});
 exports.userService = {
     createUserIntoDB,
     getAllUserIntoDB,
@@ -154,6 +119,5 @@ exports.userService = {
     updateUserIntoDB,
     deleteUserIntoDB,
     createAdminIntoDB,
-    // createStudentIntoDB,
-    // createTeacherIntoDB,
+    createHRIntoDB,
 };

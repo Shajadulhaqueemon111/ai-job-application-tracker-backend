@@ -41,7 +41,7 @@ exports.UserSchema = new mongoose_1.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin', 'hr'],
         default: 'user',
     },
     isDeleted: {

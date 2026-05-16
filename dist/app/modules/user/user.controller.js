@@ -75,6 +75,16 @@ const createAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
+const createHR = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { password, hr: hrData } = req.body;
+    const result = yield user_service_1.userService.createHRIntoDB(password, hrData);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'hr created successfully',
+        data: result,
+    });
+}));
 exports.userController = {
     createUser,
     getAllUser,
@@ -82,6 +92,7 @@ exports.userController = {
     updateUser,
     deleteUser,
     createAdmin,
+    createHR,
     // createStudent,
     // createTeacher,
 };

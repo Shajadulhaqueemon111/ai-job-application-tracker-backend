@@ -1,60 +1,50 @@
-// src/modules/job/job.route.ts
-
 import express from 'express';
 
 import validateRequest from '../../middleware/validationRequest';
-
 import authValidateRequest from '../../middleware/authValidation';
+
+import { JobControllers } from './job.controller';
+import { JobZodValidationSchema } from './job.validationschema';
 import { USER_ROLE } from '../user/user.constant';
 
-import {
-  createApplication,
-  createJob,
-  deleteJob,
-  getAllJobs,
-  getApplicationsByJob,
-  getSingleJob,
-  searchJobs,
-} from '../create-job/job.controller';
-import { JobZodValidationSchema } from './job.validationschema';
+const router = express.Router();
 
-const route = express.Router();
-
-// ---------------- JOBS ----------------
-route.get('/search', searchJobs);
-// List all jobs
-route.get('/', getAllJobs);
-
-// Get single job details
-route.get('/:id', getSingleJob);
-
-// Create a job (Admin only)
-route.post(
+// ---------------- CREATE JOB ----------------
+router.post(
   '/create-job',
-  //   authValidateRequest(USER_ROLE.admin, USER_ROLE.admin, USER_ROLE.user),
+  authValidateRequest(USER_ROLE.hr),
   validateRequest(JobZodValidationSchema.createJobValidationSchema),
-  createJob,
+  JobControllers.createJob,
 );
 
-// Delete a job (Admin only)
-route.delete(
+// ---------------- GET ALL JOBS ----------------
+router.get(
+  '/',
+  authValidateRequest(USER_ROLE.user),
+  authValidateRequest(USER_ROLE.hr),
+  JobControllers.getAllJobs,
+);
+
+// ---------------- GET SINGLE JOB ----------------
+router.get(
   '/:id',
-  //   authValidateRequest(USER_ROLE.admin, USER_ROLE.admin, USER_ROLE.user),
-  deleteJob,
+  authValidateRequest(USER_ROLE.user),
+  authValidateRequest(USER_ROLE.hr),
+  JobControllers.getSingleJob,
 );
 
-// Submit a job application
-route.post(
-  '/:jobId/applications',
-  validateRequest(JobZodValidationSchema.createApplicationValidationSchema),
-  createApplication,
+router.patch(
+  '/:id',
+  authValidateRequest(USER_ROLE.hr),
+  validateRequest(JobZodValidationSchema.createJobValidationSchema), // or update schema (better)
+  JobControllers.updateJob,
 );
 
-// Get all applications for a specific job (Admin only)
-route.get(
-  '/:jobId/applications',
-  //   authValidateRequest(USER_ROLE.admin, USER_ROLE.admin, USER_ROLE.user),
-  getApplicationsByJob,
+// ---------------- DELETE JOB ----------------
+router.delete(
+  '/:id',
+  authValidateRequest(USER_ROLE.hr),
+  JobControllers.deleteJob,
 );
 
-export const JobRoute = route;
+export const JobRoutes = router;

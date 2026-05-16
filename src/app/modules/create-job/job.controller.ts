@@ -1,37 +1,31 @@
-// src/modules/job/job.controller.ts
-
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
+import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import {
-  getAllJobsFromDB,
-  getSingleJobFromDB,
-  createJobInDB,
-  deleteJobInDB,
-  createApplicationInDB,
-  getApplicationsByJobFromDB,
-  searchJobsInDB,
-} from './job.service';
-export const searchJobs = catchAsync(async (req, res) => {
-  const { search, category, location } = req.query;
 
-  const result = await searchJobsInDB({
-    search: search as string,
-    category: category as string,
-    location: location as string,
-  });
+import { JobServices } from './job.service';
+import sendResponse from '../../utils/sendResponse';
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Jobs retrieved successfully',
-    data: result,
-  });
-});
-// ---------------- JOBS ----------------
+const createJob = async (req: Request, res: Response) => {
+  try {
+    const result = await JobServices.createJobIntoDB(req.body);
 
-export const getAllJobs = catchAsync(async (req, res) => {
-  const result = await getAllJobsFromDB();
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Job created successfully',
+      data: result,
+    });
+  } catch (error) {
+    sendResponse(res, {
+      statusCode: httpStatus.INTERNAL_SERVER_ERROR,
+      success: false,
+      message: 'Something went wrong',
+      data: error,
+    });
+  }
+};
+
+const getAllJobs = async (req: Request, res: Response) => {
+  const result = await JobServices.getAllJobsFromDB();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -39,35 +33,25 @@ export const getAllJobs = catchAsync(async (req, res) => {
     message: 'Jobs retrieved successfully',
     data: result,
   });
-});
+};
 
-export const getSingleJob = catchAsync(async (req, res) => {
+const getSingleJob = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await getSingleJobFromDB(id);
+
+  const result = await JobServices.getSingleJobFromDB(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Single job retrieved successfully',
+    message: 'Job retrieved successfully',
     data: result,
   });
-});
+};
 
-export const createJob = catchAsync(async (req, res) => {
-  const payload = req.body;
-  const result = await createJobInDB(payload);
-
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Job created successfully',
-    data: result,
-  });
-});
-
-export const deleteJob = catchAsync(async (req, res) => {
+const deleteJob = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await deleteJobInDB(id);
+
+  const result = await JobServices.deleteJobFromDB(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -75,30 +59,32 @@ export const deleteJob = catchAsync(async (req, res) => {
     message: 'Job deleted successfully',
     data: result,
   });
-});
+};
+const updateJob = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-// ---------------- APPLICATIONS ----------------
+    const result = await JobServices.updateJobIntoDB(id, req.body);
 
-export const createApplication = catchAsync(async (req, res) => {
-  const payload = req.body;
-  const result = await createApplicationInDB(payload);
-
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Application submitted successfully',
-    data: result,
-  });
-});
-
-export const getApplicationsByJob = catchAsync(async (req, res) => {
-  const { jobId } = req.params;
-  const result = await getApplicationsByJobFromDB(jobId);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Applications for job retrieved successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Job updated successfully',
+      data: result,
+    });
+  } catch (error) {
+    sendResponse(res, {
+      statusCode: httpStatus.INTERNAL_SERVER_ERROR,
+      success: false,
+      message: 'Failed to update job',
+      data: error,
+    });
+  }
+};
+export const JobControllers = {
+  createJob,
+  getAllJobs,
+  getSingleJob,
+  deleteJob,
+  updateJob,
+};

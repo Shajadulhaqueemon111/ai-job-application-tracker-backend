@@ -12,20 +12,12 @@ const user_ZodValidation_1 = require("./user.ZodValidation");
 // import { StudentZodValidationSchema } from '../student/student.zodvalidation';
 const authValidation_1 = __importDefault(require("../../middleware/authValidation"));
 const user_constant_1 = require("./user.constant");
+const hr_validation_1 = require("../hr/hr.validation");
 // import { TeacherZodValidationSchema } from '../teacher/teacher.zodvalidation';
 const route = express_1.default.Router();
 route.post('/register', (0, validationRequest_1.default)(user_ZodValidation_1.UserzodValidationSchema.createUserZodSchema), user_controller_1.userController.createUser);
 route.post('/create-admin', (0, validationRequest_1.default)(admin_zodvalidation_1.adminZodValidationSchema.createAdminValidationSchema), user_controller_1.userController.createAdmin);
-// route.post(
-//   '/create-student',
-//   validateRequest(StudentZodValidationSchema.createStudentValidationSchema),
-//   userController.createStudent,
-// );
-// route.post(
-//   '/create-teacher',
-//   validateRequest(TeacherZodValidationSchema.createTeacherValidationSchema),
-//   userController.createTeacher,
-// );
+route.post('/create-hr', (0, validationRequest_1.default)(hr_validation_1.HRValidationSchema.createHRValidationSchema), user_controller_1.userController.createHR);
 route.get('/', user_controller_1.userController.getAllUser);
 route.get('/:id', user_controller_1.userController.getSingleUser);
 route.patch('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.admin), (0, validationRequest_1.default)(user_ZodValidation_1.UserzodValidationSchema.updateUserZodSchema), user_controller_1.userController.updateUser);

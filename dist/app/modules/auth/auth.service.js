@@ -90,18 +90,14 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     };
 });
 const logoutUser = (res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.clearCookie('accessToken', {
+    const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
-    });
-    res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-    });
+    };
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     return {
         message: 'Successfully logged out',
     };

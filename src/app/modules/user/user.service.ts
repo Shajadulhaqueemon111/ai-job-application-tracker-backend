@@ -5,6 +5,8 @@ import mongoose, { startSession } from 'mongoose';
 import AppError from '../../error/appError';
 import httpStatus from 'http-status';
 import AdminModle from '../admin/admin.modle';
+import { HRModel } from '../hr/hr.moduels';
+import { THR } from '../hr/hr.interface';
 
 const createUserIntoDB = async (payload: IUser) => {
   const result = await UserModel.create(payload);
@@ -88,90 +90,55 @@ const createAdminIntoDB = async (password: string, payload: TAdmin) => {
     throw err;
   }
 };
+const createHRIntoDB = async (password: string, payload: THR) => {
+  const userData: Partial<IUser> = {
+    role: 'hr',
+    email: payload.email,
+    name: payload.name,
+    profileImage: payload.company?.logo || undefined,
+    password,
+  };
 
-// const createStudentIntoDB = async (password: string, payload: TStudent) => {
-//   const userData: Partial<IUser> = {
-//     role: 'student',
-//     name: payload.name,
-//     email: payload.email,
-//     password,
-//   };
-//   console.log(userData);
+  console.log(userData);
 
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  console.log(session);
 
-//   console.log(session);
-//   try {
-//     const newUser = await UserModel.create([userData], { session });
+  try {
+    const newUser = await UserModel.create([userData], { session });
 
-//     if (!newUser.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'user create failed');
-//     }
+    if (!newUser.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'user create failed');
+    }
 
-//     const studentPayload = {
-//       ...payload,
-//       user: newUser[0]._id,
-//       profileImage: payload.profileImage || undefined,
-//     };
-//     console.log(studentPayload);
+    const hrPayload = {
+      ...payload,
+      user: newUser[0]._id,
+      logo: payload.company?.logo || undefined,
+    };
 
-//     const newStudent = await StudentModle.create([studentPayload], { session });
-//     if (!newStudent.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'student created failed');
-//     }
-//     await session.commitTransaction();
-//     session.endSession();
-//     console.log(newStudent);
-//   } catch (err) {
-//     console.log(err);
-//     await session.abortTransaction();
-//     session.endSession();
-//     throw err;
-//   }
-// };
+    console.log(hrPayload);
 
-// const createTeacherIntoDB = async (password: string, payload: TTeacher) => {
-//   const userData: Partial<IUser> = {
-//     role: 'teacher',
-//     name: payload.name,
-//     email: payload.email,
-//     password,
-//   };
+    const newHR = await HRModel.create([hrPayload], { session });
 
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   console.log(session);
+    if (!newHR.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'hr created failed');
+    }
 
-//   try {
-//     const newUser = await UserModel.create([userData], { session });
-//     if (!newUser.length) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'user not create');
-//     }
+    await session.commitTransaction();
+    session.endSession();
 
-//     const techerPayload = {
-//       ...payload,
-//       user: newUser[0]._id,
-//       profieImage: payload.profileImage || undefined,
-//     };
+    return newHR[0];
+  } catch (err) {
+    console.log(err);
 
-//     console.log(techerPayload);
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
+};
 
-//     const newTeacher = await TeacherModle.create([techerPayload], { session });
-//     console.log(newTeacher);
-
-//     if (!newTeacher.length) {
-//       throw new AppError(httpStatus.OK, 'teacher not created');
-//     }
-//     await session.commitTransaction();
-//     session.endSession();
-//     return newTeacher[0];
-//   } catch (err) {
-//     console.log(err);
-//     await session.abortTransaction();
-//     session.endSession();
-//   }
-// };
 export const userService = {
   createUserIntoDB,
   getAllUserIntoDB,
@@ -179,6 +146,5 @@ export const userService = {
   updateUserIntoDB,
   deleteUserIntoDB,
   createAdminIntoDB,
-  // createStudentIntoDB,
-  // createTeacherIntoDB,
+  createHRIntoDB,
 };

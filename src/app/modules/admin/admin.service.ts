@@ -21,6 +21,7 @@ const updateAdminIntoDB = async (_id: string, payload: Partial<TAdmin>) => {
 
 const deleteAdminIntoDB = async (_id: string) => {
   const result = await AdminModle.findByIdAndDelete(_id);
+  return result;
 };
 export const AdminService = {
   getAllAdminIntoDB,

@@ -72,6 +72,17 @@ const createAdmin = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const createHR = catchAsync(async (req, res) => {
+  const { password, hr: hrData } = req.body;
+  const result = await userService.createHRIntoDB(password, hrData);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'hr created successfully',
+    data: result,
+  });
+});
 
 export const userController = {
   createUser,
@@ -80,6 +91,7 @@ export const userController = {
   updateUser,
   deleteUser,
   createAdmin,
+  createHR,
   // createStudent,
   // createTeacher,
 };

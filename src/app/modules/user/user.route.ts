@@ -6,6 +6,7 @@ import { UserzodValidationSchema } from './user.ZodValidation';
 // import { StudentZodValidationSchema } from '../student/student.zodvalidation';
 import authValidateRequest from '../../middleware/authValidation';
 import { USER_ROLE } from './user.constant';
+import { HRValidationSchema } from '../hr/hr.validation';
 // import { TeacherZodValidationSchema } from '../teacher/teacher.zodvalidation';
 
 const route = express.Router();
@@ -21,16 +22,12 @@ route.post(
   validateRequest(adminZodValidationSchema.createAdminValidationSchema),
   userController.createAdmin,
 );
-// route.post(
-//   '/create-student',
-//   validateRequest(StudentZodValidationSchema.createStudentValidationSchema),
-//   userController.createStudent,
-// );
-// route.post(
-//   '/create-teacher',
-//   validateRequest(TeacherZodValidationSchema.createTeacherValidationSchema),
-//   userController.createTeacher,
-// );
+route.post(
+  '/create-hr',
+  validateRequest(HRValidationSchema.createHRValidationSchema),
+  userController.createHR,
+);
+
 route.get('/', userController.getAllUser);
 route.get('/:id', userController.getSingleUser);
 route.patch(

@@ -30,6 +30,7 @@ const updateAdminIntoDB = (_id, payload) => __awaiter(void 0, void 0, void 0, fu
 });
 const deleteAdminIntoDB = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield admin_modle_1.default.findByIdAndDelete(_id);
+    return result;
 });
 exports.AdminService = {
     getAllAdminIntoDB,

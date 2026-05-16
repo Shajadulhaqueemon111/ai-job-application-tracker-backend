@@ -1,60 +1,42 @@
-// src/modules/job/job.service.ts
+import { TJob } from './job.interface';
+import { JobModel } from './job.modle';
 
-import { IJob, IApplication } from './job.interface';
-import { ApplicationModel, JobModel } from './job.modle';
+const createJobIntoDB = async (payload: TJob) => {
+  const result = await JobModel.create(payload);
 
-// JOBS
-export const searchJobsInDB = async (params: {
-  search?: string;
-  category?: string;
-  location?: string;
-}): Promise<IJob[]> => {
-  const { search, category, location } = params;
-
-  const filter: any = {};
-
-  if (search) {
-    filter.title = { $regex: search, $options: 'i' }; // case-insensitive search
-  }
-
-  if (category) {
-    filter.category = category;
-  }
-
-  if (location) {
-    filter.location = location;
-  }
-
-  return await JobModel.find(filter).sort({ createdAt: -1 });
-};
-export const getAllJobsFromDB = async (): Promise<IJob[]> => {
-  return await JobModel.find().sort({ createdAt: -1 });
+  return result;
 };
 
-export const getSingleJobFromDB = async (id: string): Promise<IJob | null> => {
-  return await JobModel.findById(id);
+const getAllJobsFromDB = async () => {
+  const result = await JobModel.find().populate('createdBy');
+
+  return result;
 };
 
-export const createJobInDB = async (data: IJob): Promise<IJob> => {
-  const job = new JobModel(data);
-  return await job.save();
+const getSingleJobFromDB = async (id: string) => {
+  const result = await JobModel.findById(id).populate('createdBy');
+
+  return result;
+};
+const updateJobIntoDB = async (id: string, payload: Partial<TJob>) => {
+  const result = await JobModel.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return result;
 };
 
-export const deleteJobInDB = async (id: string): Promise<IJob | null> => {
-  return await JobModel.findByIdAndDelete(id);
+const deleteJobFromDB = async (id: string) => {
+  const result = await JobModel.findByIdAndDelete(id);
+
+  return result;
 };
 
-// APPLICATIONS
-
-export const createApplicationInDB = async (
-  data: IApplication,
-): Promise<IApplication> => {
-  const application = new ApplicationModel(data);
-  return await application.save();
-};
-
-export const getApplicationsByJobFromDB = async (
-  jobId: string,
-): Promise<IApplication[]> => {
-  return await ApplicationModel.find({ jobId });
+export const JobServices = {
+  createJobIntoDB,
+  getAllJobsFromDB,
+  getSingleJobFromDB,
+  deleteJobFromDB,
+  updateJobIntoDB,
 };

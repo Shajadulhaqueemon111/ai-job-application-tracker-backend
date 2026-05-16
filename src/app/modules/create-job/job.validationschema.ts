@@ -1,26 +1,65 @@
-// src/modules/job/job.zodvalidation.ts
-
 import { z } from 'zod';
+
+// ---------------- COMPANY ----------------
+const companySchema = z.object({
+  name: z.string().min(1),
+  logo: z.string().optional(),
+  website: z.string().optional(),
+});
+
+// ---------------- SALARY ----------------
+const salarySchema = z.object({
+  min: z.number().optional(),
+  max: z.number().optional(),
+  currency: z.string().default('USD'),
+});
 
 // ---------------- JOB VALIDATION ----------------
 const createJobValidationSchema = z.object({
   body: z.object({
-    title: z.string().min(1, { message: 'Job title is required' }),
-    company: z.string().min(1, { message: 'Company name is required' }),
-    location: z.string().min(1, { message: 'Location is required' }),
-    category: z.string().min(1, { message: 'Category is required' }),
-    description: z.string().min(1, { message: 'Job description is required' }),
+    title: z.string().min(1, 'Job title is required'),
+
+    company: companySchema,
+
+    location: z.string().min(1, 'Location is required'),
+
+    workType: z.enum(['Remote', 'Hybrid', 'Onsite']),
+
+    employmentType: z.enum([
+      'Full-time',
+      'Part-time',
+      'Internship',
+      'Contract',
+    ]),
+
+    experienceLevel: z.enum(['Junior', 'Mid', 'Senior']),
+
+    salary: salarySchema.optional(),
+
+    skills: z.array(z.string()).optional(),
+
+    description: z.string().min(1),
+
+    responsibilities: z.array(z.string()).optional(),
+
+    requirements: z.array(z.string()).optional(),
+
+    benefits: z.array(z.string()).optional(),
+
+    applicationDeadline: z.string().optional(),
+
+    createdBy: z.string().min(1),
   }),
 });
 
 // ---------------- APPLICATION VALIDATION ----------------
 const createApplicationValidationSchema = z.object({
   body: z.object({
-    name: z.string().min(1, { message: 'Name is required' }),
-    email: z.string().email({ message: 'Invalid email format' }),
-    resumeLink: z.string().url({ message: 'Resume must be a valid URL' }),
+    name: z.string().min(1),
+    email: z.string().email(),
+    resumeLink: z.string().url(),
     coverNote: z.string().optional(),
-    jobId: z.string().min(1, { message: 'Job ID is required' }),
+    jobId: z.string().min(1),
   }),
 });
 

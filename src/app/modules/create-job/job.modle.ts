@@ -1,30 +1,93 @@
-// src/modules/job/job.model.ts
+import { Schema, model } from 'mongoose';
+import { TJob } from './job.interface';
 
-import mongoose, { Schema, model } from 'mongoose';
-import { IApplication, IJob } from './job.interface';
-
-// Job Schema
-const jobSchema = new Schema<IJob>({
-  title: { type: String, required: true },
-  company: { type: String, required: true },
-  location: { type: String, required: true },
-  category: { type: String, required: true },
-  description: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+const companySchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  logo: String,
+  website: String,
 });
 
-// Application Schema
-const applicationSchema = new Schema<IApplication>({
-  jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  resumeLink: { type: String, required: true },
-  coverNote: { type: String },
-  createdAt: { type: Date, default: Date.now },
+const salarySchema = new Schema({
+  min: Number,
+  max: Number,
+  currency: {
+    type: String,
+    default: 'USD',
+  },
 });
 
-export const JobModel = model<IJob>('Job', jobSchema);
-export const ApplicationModel = model<IApplication>(
-  'Application',
-  applicationSchema,
+const jobSchema = new Schema<TJob>(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+
+    company: {
+      type: companySchema,
+      required: true,
+    },
+
+    location: {
+      type: String,
+      required: true,
+    },
+
+    workType: {
+      type: String,
+      enum: ['Remote', 'Hybrid', 'Onsite'],
+      required: true,
+    },
+
+    employmentType: {
+      type: String,
+      enum: ['Full-time', 'Part-time', 'Internship', 'Contract'],
+      required: true,
+    },
+
+    experienceLevel: {
+      type: String,
+      enum: ['Junior', 'Mid', 'Senior'],
+      required: true,
+    },
+
+    salary: salarySchema,
+
+    skills: [String],
+
+    description: String,
+
+    responsibilities: [String],
+
+    requirements: [String],
+
+    benefits: [String],
+
+    applicationDeadline: Date,
+
+    totalApplicants: {
+      type: Number,
+      default: 0,
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ['active', 'closed'],
+      default: 'active',
+    },
+  },
+  {
+    timestamps: true,
+  },
 );
+
+export const JobModel = model<TJob>('Job', jobSchema);
