@@ -10,8 +10,8 @@ const companySchema = zod_1.z.object({
 });
 // ---------------- SALARY ----------------
 const salarySchema = zod_1.z.object({
-    min: zod_1.z.number().optional(),
-    max: zod_1.z.number().optional(),
+    min: zod_1.z.coerce.number().optional(),
+    max: zod_1.z.coerce.number().optional(),
     currency: zod_1.z.string().default('USD'),
 });
 // ---------------- JOB VALIDATION ----------------
@@ -35,7 +35,7 @@ const createJobValidationSchema = zod_1.z.object({
         requirements: zod_1.z.array(zod_1.z.string()).optional(),
         benefits: zod_1.z.array(zod_1.z.string()).optional(),
         applicationDeadline: zod_1.z.string().optional(),
-        createdBy: zod_1.z.string().min(1),
+        // createdBy: z.string(),
     }),
 });
 // ---------------- APPLICATION VALIDATION ----------------

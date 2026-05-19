@@ -16,11 +16,11 @@ const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function*
     return result;
 });
 const getAllJobsFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield job_modle_1.JobModel.find().populate('createdBy');
+    const result = yield job_modle_1.JobModel.find();
     return result;
 });
 const getSingleJobFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield job_modle_1.JobModel.findById(id).populate('createdBy');
+    const result = yield job_modle_1.JobModel.findById(id);
     return result;
 });
 const updateJobIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {

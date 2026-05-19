@@ -6,6 +6,7 @@ import authValidateRequest from '../../middleware/authValidation';
 import { JobControllers } from './job.controller';
 import { JobZodValidationSchema } from './job.validationschema';
 import { USER_ROLE } from '../user/user.constant';
+import { upload } from '../../middleware/upload';
 
 const router = express.Router();
 
@@ -13,6 +14,11 @@ const router = express.Router();
 router.post(
   '/create-job',
   authValidateRequest(USER_ROLE.hr),
+  upload.single('logo'),
+  (req, res, next) => {
+    console.log('BODY:', req.body); // 🔥 DEBUG
+    next();
+  },
   validateRequest(JobZodValidationSchema.createJobValidationSchema),
   JobControllers.createJob,
 );
@@ -20,16 +26,16 @@ router.post(
 // ---------------- GET ALL JOBS ----------------
 router.get(
   '/',
-  authValidateRequest(USER_ROLE.user),
-  authValidateRequest(USER_ROLE.hr),
+
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
   JobControllers.getAllJobs,
 );
 
 // ---------------- GET SINGLE JOB ----------------
 router.get(
   '/:id',
-  authValidateRequest(USER_ROLE.user),
-  authValidateRequest(USER_ROLE.hr),
+
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
   JobControllers.getSingleJob,
 );
 

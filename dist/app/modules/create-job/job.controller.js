@@ -16,24 +16,48 @@ exports.JobControllers = void 0;
 const http_status_1 = __importDefault(require("http-status"));
 const job_service_1 = require("./job.service");
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
+const upload_service_1 = require("../upload/upload-service");
 const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield job_service_1.JobServices.createJobIntoDB(req.body);
-        (0, sendResponse_1.default)(res, {
-            statusCode: http_status_1.default.OK,
-            success: true,
-            message: 'Job created successfully',
-            data: result,
-        });
+    var _a, _b;
+    const user = req.user;
+    let logoUrl = '';
+    if (req.file) {
+        const result = yield (0, upload_service_1.uploadToCloudinary)(req.file.buffer);
+        logoUrl = result.secure_url;
     }
-    catch (error) {
-        (0, sendResponse_1.default)(res, {
-            statusCode: http_status_1.default.INTERNAL_SERVER_ERROR,
-            success: false,
-            message: 'Something went wrong',
-            data: error,
-        });
-    }
+    const salary = req.body.salary;
+    const jobData = {
+        title: req.body.title,
+        location: req.body.location,
+        workType: req.body.workType,
+        employmentType: req.body.employmentType,
+        experienceLevel: req.body.experienceLevel,
+        description: req.body.description,
+        applicationDeadline: req.body.applicationDeadline,
+        status: req.body.status,
+        company: {
+            name: (_a = req.body.company) === null || _a === void 0 ? void 0 : _a.name,
+            logo: logoUrl,
+            website: (_b = req.body.company) === null || _b === void 0 ? void 0 : _b.website,
+        },
+        salary: {
+            min: Number(salary.min),
+            max: Number(salary.max),
+            currency: salary.currency,
+        },
+        skills: Array.isArray(req.body.skills)
+            ? req.body.skills.filter((s) => s.trim())
+            : [],
+        responsibilities: req.body.responsibilities || [],
+        requirements: req.body.requirements || [],
+        benefits: req.body.benefits || [],
+        createdBy: user._id,
+    };
+    const result = yield job_service_1.JobServices.createJobIntoDB(jobData);
+    return res.json({
+        success: true,
+        data: result,
+    });
 });
 const getAllJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield job_service_1.JobServices.getAllJobsFromDB();

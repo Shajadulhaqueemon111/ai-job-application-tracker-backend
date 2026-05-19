@@ -73,8 +73,8 @@ const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid Refresh Token!');
   }
 
-  const { email, role } = decoded;
-  if (!email || !role) {
+  const { _id, email, role } = decoded;
+  if (!_id || !email || !role) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid Token Payload!');
   }
 
@@ -85,7 +85,7 @@ const refreshToken = async (token: string) => {
   }
 
   const jwtPayload = {
-    _id: user._id,
+    _id: user._id.toString(),
     name: user.name,
     email: user.email,
     role: user.role,

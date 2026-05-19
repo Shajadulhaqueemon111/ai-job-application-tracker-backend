@@ -9,11 +9,10 @@ const companySchema = z.object({
 
 // ---------------- SALARY ----------------
 const salarySchema = z.object({
-  min: z.number().optional(),
-  max: z.number().optional(),
+  min: z.coerce.number().optional(),
+  max: z.coerce.number().optional(),
   currency: z.string().default('USD'),
 });
-
 // ---------------- JOB VALIDATION ----------------
 const createJobValidationSchema = z.object({
   body: z.object({
@@ -48,7 +47,7 @@ const createJobValidationSchema = z.object({
 
     applicationDeadline: z.string().optional(),
 
-    createdBy: z.string().min(1),
+    // createdBy: z.string(),
   }),
 });
 

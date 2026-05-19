@@ -6,9 +6,16 @@ import AppError from '../error/appError';
 import { TUserRole } from '../modules/user/user.interface';
 import config from '../config';
 import { validUserForLogin } from '../modules/auth/auth.utils';
+import * as cookie from 'cookie';
 const authValidateRequest = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    let token = req.headers.authorization;
+
+    if (!token && req.headers.cookie) {
+      const cookies = cookie.parse(req.headers.cookie || '');
+
+      token = cookies.accessToken;
+    }
     console.log(token);
     if (!token) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You Are Not Autorized !');

@@ -65,8 +65,8 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     catch (err) {
         throw new appError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid Refresh Token!');
     }
-    const { email, role } = decoded;
-    if (!email || !role) {
+    const { _id, email, role } = decoded;
+    if (!_id || !email || !role) {
         throw new appError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid Token Payload!');
     }
     // Validate user again (in case user is deleted or blocked)
@@ -75,7 +75,7 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
         throw new appError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
     }
     const jwtPayload = {
-        _id: user._id,
+        _id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
