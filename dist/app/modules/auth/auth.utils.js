@@ -18,7 +18,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_modle_1 = __importDefault(require("../user/user.modle"));
 const appError_1 = __importDefault(require("../../error/appError"));
 const validUserForLogin = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_modle_1.default.findOne({ email }).select('+status +password');
+    const user = yield user_modle_1.default.findOne({ email }).select('+status +password +otp +otpExpire');
     if (!user) {
         throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'user in not found');
     }
@@ -27,10 +27,12 @@ const validUserForLogin = (email) => __awaiter(void 0, void 0, void 0, function*
 exports.validUserForLogin = validUserForLogin;
 const checkPassword = (givenPassword, savePassword) => __awaiter(void 0, void 0, void 0, function* () {
     const isMatched = yield bcryptjs_1.default.compare(givenPassword, savePassword);
+    console.log('givenPassword:', `"${givenPassword}"`);
+    console.log('savePassword:', savePassword);
     console.log(isMatched);
-    if (!isMatched) {
-        throw new appError_1.default(http_status_1.default.FORBIDDEN, 'password does not matched');
-    }
+    // if (!isMatched) {
+    //   throw new AppError(httpStatus.FORBIDDEN, 'password does not matched');
+    // }
     return isMatched;
 });
 exports.checkPassword = checkPassword;

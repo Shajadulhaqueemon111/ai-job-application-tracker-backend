@@ -19,25 +19,80 @@ const appError_1 = __importDefault(require("../../error/appError"));
 const config_1 = __importDefault(require("../../config"));
 const auth_utils_1 = require("./auth.utils");
 const auth_jwtutils_1 = require("./auth.jwtutils");
+const sendOtp_1 = require("../../utils/sendOtp");
+const user_modle_1 = __importDefault(require("../user/user.modle"));
+// 👉 import your mailer (IMPORTANT)
+// import { sendOTP } from './auth.mailer';
 const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { email, password } = payload;
+    // 1️⃣ validate input
     if (!email) {
         throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User email is undefined');
     }
     if (!password) {
         throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User password is undefined');
     }
-    // Check if user exists
+    // 2️⃣ find user
     const user = yield (0, auth_utils_1.validUserForLogin)(email);
-    if (!user) {
-        throw new appError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    // 🔥 LOCK CHECK (এখানেই বসবে)
+    if (user.lockUntil && user.lockUntil > new Date()) {
+        throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Account locked');
     }
-    // Match password
     const isPasswordMatched = yield (0, auth_utils_1.checkPassword)(password, user.password);
+    if (!isPasswordMatched) {
+        const updatedUser = yield user_modle_1.default.findByIdAndUpdate(user._id, { $inc: { loginAttempts: 1 } }, { new: true });
+        if (((_a = updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.loginAttempts) !== null && _a !== void 0 ? _a : 0) >= 3) {
+            yield user_modle_1.default.findByIdAndUpdate(user._id, {
+                lockUntil: new Date(Date.now() + 10 * 60 * 1000),
+                loginAttempts: 0,
+            });
+            throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Too many attempts. Account locked for 10 minutes.');
+        }
+        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'Password does not match');
+    }
+    // 3️⃣ check password
+    // const isPasswordMatched = await checkPassword(password, user.password);
+    console.log('isPasswordMatched:', isPasswordMatched);
     if (!isPasswordMatched) {
         throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User password is incorrect');
     }
-    // Prepare JWT payload
+    // 4️⃣ OTP generate (ONLY after password success)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    yield user.save();
+    // 🔥 LOGIN TRACKING FIX (ADD THIS)
+    yield user_modle_1.default.findByIdAndUpdate(user._id, {
+        lastLogin: new Date(),
+        loginAttempts: 0,
+        lockUntil: null,
+    });
+    // 5️⃣ send OTP email
+    yield (0, sendOtp_1.sendOTP)(user.email, otp);
+    return {
+        message: 'OTP sent successfully',
+        email: user.email,
+    };
+});
+// =========================
+// 🔐 VERIFY OTP → JWT GENERATE (NEW FUNCTION)
+// =========================
+const verifyOTP = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield (0, auth_utils_1.validUserForLogin)(email);
+    // check OTP
+    if (user.otp !== otp) {
+        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'Invalid OTP');
+    }
+    // check expiry
+    if (user.otpExpire && user.otpExpire < new Date()) {
+        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'OTP expired');
+    }
+    // clear OTP
+    user.otp = undefined;
+    user.otpExpire = undefined;
+    yield user.save();
+    // JWT payload
     const jwtPayload = {
         _id: user._id,
         name: user.name,
@@ -46,7 +101,7 @@ const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         profileImage: user.profileImage,
         status: user.status || 'active',
     };
-    // Generate access & refresh token
+    // generate tokens
     const accessToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_access_secret, config_1.default.jwt_access_expirense_in);
     const refreshToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_refresh_secret, config_1.default.jwt_refresh_expirense_in);
     return {
@@ -54,6 +109,9 @@ const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         refreshToken,
     };
 });
+// =========================
+// 🔁 REFRESH TOKEN
+// =========================
 const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token) {
         throw new appError_1.default(http_status_1.default.UNAUTHORIZED, 'You are not Authorized');
@@ -65,15 +123,11 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     catch (err) {
         throw new appError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid Refresh Token!');
     }
-    const { _id, email, role } = decoded;
-    if (!_id || !email || !role) {
+    const { email } = decoded;
+    if (!email) {
         throw new appError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid Token Payload!');
     }
-    // Validate user again (in case user is deleted or blocked)
     const user = yield (0, auth_utils_1.validUserForLogin)(email);
-    if (!user) {
-        throw new appError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
-    }
     const jwtPayload = {
         _id: user._id.toString(),
         name: user.name,
@@ -82,13 +136,14 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
         profileImage: user.profileImage,
         status: user.status || 'active',
     };
-    console.log('Decoded JWT Payload:', jwtPayload);
-    // Generate new Access Token only
     const newAccessToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_access_secret, config_1.default.jwt_access_expirense_in);
     return {
         accessToken: newAccessToken,
     };
 });
+// =========================
+// 🚪 LOGOUT
+// =========================
 const logoutUser = (res) => __awaiter(void 0, void 0, void 0, function* () {
     const cookieOptions = {
         httpOnly: true,
@@ -102,8 +157,12 @@ const logoutUser = (res) => __awaiter(void 0, void 0, void 0, function* () {
         message: 'Successfully logged out',
     };
 });
+// =========================
+// EXPORT
+// =========================
 exports.AuthServices = {
     LoginUser,
+    verifyOTP,
     refreshToken,
     logoutUser,
 };

@@ -12,41 +12,63 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.refreshToken = exports.loginUser = void 0;
+exports.logout = exports.verifyOTP = exports.loginUser = void 0;
 const config_1 = __importDefault(require("../../config"));
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const auth_service_1 = require("./auth.service");
 const http_status_1 = __importDefault(require("http-status"));
+// export const loginUser = catchAsync(async (req, res) => {
+//   const result = await AuthServices.LoginUser(req.body);
+//   const { accessToken, refreshToken } = result;
+//   res.cookie('refreshToken', refreshToken, {
+//     secure: config.NODE_ENV === 'production',
+//     httpOnly: true,
+//     sameSite: 'none',
+//     path: '/',
+//   });
+//   res.cookie('accessToken', accessToken, {
+//     secure: config.NODE_ENV === 'production',
+//     httpOnly: true,
+//     sameSite: 'none',
+//     path: '/',
+//   });
+//   sendResponse(res, {
+//     statusCode: httpSattus.OK,
+//     success: true,
+//     message: 'user login successfully',
+//     data: result,
+//   });
+// });
 exports.loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield auth_service_1.AuthServices.LoginUser(req.body);
-    const { accessToken, refreshToken } = result;
-    res.cookie('refreshToken', refreshToken, {
-        secure: config_1.default.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'none',
-        path: '/',
-    });
-    res.cookie('accessToken', accessToken, {
-        secure: config_1.default.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'none',
-        path: '/',
-    });
+    console.log('Login Result:', result);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'user login successfully',
+        message: 'OTP sent successfully',
         data: result,
     });
 }));
-exports.refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { refreshToken } = req.cookies;
-    const result = yield auth_service_1.AuthServices.refreshToken(refreshToken);
+exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, otp } = req.body;
+    const result = yield auth_service_1.AuthServices.verifyOTP(email, otp);
+    res.cookie('accessToken', result.accessToken, {
+        secure: config_1.default.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+    });
+    res.cookie('refreshToken', result.refreshToken, {
+        secure: config_1.default.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+    });
     (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
+        statusCode: 200,
         success: true,
-        message: 'accessToken is retrive successfully',
+        message: 'OTP verified successfully',
         data: result,
     });
 }));

@@ -48,6 +48,26 @@ exports.UserSchema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
+    otp: {
+        type: String,
+        default: null,
+    },
+    otpExpire: {
+        type: Date,
+        default: null,
+    },
+    lastLogin: {
+        type: Date,
+        default: null,
+    },
+    loginAttempts: {
+        type: Number,
+        default: 0,
+    },
+    lockUntil: {
+        type: Date,
+        default: null,
+    },
 }, {
     timestamps: true,
 });
@@ -58,6 +78,9 @@ exports.UserSchema.pre(/^find/, function (next) {
 exports.UserSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = this;
+        // ✅ এই check টা add করুন
+        if (!user.isModified('password'))
+            return next();
         user.password = yield bcryptjs_1.default.hash(user.password, Number(config_1.default.bcrypt_salt_rounds));
         next();
     });

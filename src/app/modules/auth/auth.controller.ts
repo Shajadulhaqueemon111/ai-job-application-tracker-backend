@@ -3,40 +3,63 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 import httpSattus from 'http-status';
+// export const loginUser = catchAsync(async (req, res) => {
+//   const result = await AuthServices.LoginUser(req.body);
+
+//   const { accessToken, refreshToken } = result;
+//   res.cookie('refreshToken', refreshToken, {
+//     secure: config.NODE_ENV === 'production',
+//     httpOnly: true,
+//     sameSite: 'none',
+//     path: '/',
+//   });
+//   res.cookie('accessToken', accessToken, {
+//     secure: config.NODE_ENV === 'production',
+//     httpOnly: true,
+//     sameSite: 'none',
+//     path: '/',
+//   });
+
+//   sendResponse(res, {
+//     statusCode: httpSattus.OK,
+//     success: true,
+//     message: 'user login successfully',
+//     data: result,
+//   });
+// });
 export const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.LoginUser(req.body);
-
-  const { accessToken, refreshToken } = result;
-  res.cookie('refreshToken', refreshToken, {
-    secure: config.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'none',
-    path: '/',
-  });
-  res.cookie('accessToken', accessToken, {
-    secure: config.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'none',
-    path: '/',
-  });
-
+  console.log('Login Result:', result);
   sendResponse(res, {
     statusCode: httpSattus.OK,
     success: true,
-    message: 'user login successfully',
+    message: 'OTP sent successfully',
     data: result,
   });
 });
+export const verifyOTP = catchAsync(async (req, res) => {
+  const { email, otp } = req.body;
 
-export const refreshToken = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies;
+  const result = await AuthServices.verifyOTP(email, otp);
 
-  const result = await AuthServices.refreshToken(refreshToken);
+  res.cookie('accessToken', result.accessToken, {
+    secure: config.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  });
+
+  res.cookie('refreshToken', result.refreshToken, {
+    secure: config.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  });
 
   sendResponse(res, {
-    statusCode: httpSattus.OK,
+    statusCode: 200,
     success: true,
-    message: 'accessToken is retrive successfully',
+    message: 'OTP verified successfully',
     data: result,
   });
 });

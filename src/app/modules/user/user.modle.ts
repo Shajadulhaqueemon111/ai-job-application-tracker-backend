@@ -37,6 +37,30 @@ export const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    otp: {
+      type: String,
+      default: null,
+    },
+
+    otpExpire: {
+      type: Date,
+      default: null,
+    },
+
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
+
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -49,6 +73,10 @@ UserSchema.pre(/^find/, function (this: Query<any, any>, next: () => void) {
 });
 UserSchema.pre('save', async function (next) {
   const user = this;
+
+  // ✅ এই check টা add করুন
+  if (!user.isModified('password')) return next();
+
   user.password = await bycript.hash(
     user.password,
     Number(config.bcrypt_salt_rounds),

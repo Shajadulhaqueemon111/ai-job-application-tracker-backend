@@ -8,6 +8,11 @@ export interface IUser {
   password: string;
   role: 'user' | 'admin' | 'hr';
   isDeleted: boolean;
+  otp?: string;
+  otpExpire?: Date;
+  lastLogin?: Date;
+  loginAttempts?: number;
+  lockUntil?: Date;
 }
 
 export type TUserRole = keyof typeof USER_ROLE;

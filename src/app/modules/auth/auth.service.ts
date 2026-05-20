@@ -5,31 +5,106 @@ import config from '../../config';
 import { TLogin } from './auth.interface';
 import { checkPassword, validUserForLogin } from './auth.utils';
 import { createToken } from './auth.jwtutils';
+import { sendOTP } from '../../utils/sendOtp';
+import UserModel from '../user/user.modle';
+
+// 👉 import your mailer (IMPORTANT)
+// import { sendOTP } from './auth.mailer';
 
 const LoginUser = async (payload: TLogin) => {
   const { email, password } = payload;
 
+  // 1️⃣ validate input
   if (!email) {
     throw new AppError(httpStatus.BAD_REQUEST, 'User email is undefined');
   }
+
   if (!password) {
     throw new AppError(httpStatus.BAD_REQUEST, 'User password is undefined');
   }
 
-  // Check if user exists
+  // 2️⃣ find user
   const user = await validUserForLogin(email);
-
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  // 🔥 LOCK CHECK (এখানেই বসবে)
+  if (user.lockUntil && user.lockUntil > new Date()) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
   }
 
-  // Match password
   const isPasswordMatched = await checkPassword(password, user.password);
+
+  if (!isPasswordMatched) {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      user._id,
+      { $inc: { loginAttempts: 1 } },
+      { new: true },
+    );
+
+    if ((updatedUser?.loginAttempts ?? 0) >= 3) {
+      await UserModel.findByIdAndUpdate(user._id, {
+        lockUntil: new Date(Date.now() + 10 * 60 * 1000),
+        loginAttempts: 0,
+      });
+
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Too many attempts. Account locked for 10 minutes.',
+      );
+    }
+
+    throw new AppError(httpStatus.BAD_REQUEST, 'Password does not match');
+  }
+  // 3️⃣ check password
+  // const isPasswordMatched = await checkPassword(password, user.password);
+  console.log('isPasswordMatched:', isPasswordMatched);
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.BAD_REQUEST, 'User password is incorrect');
   }
 
-  // Prepare JWT payload
+  // 4️⃣ OTP generate (ONLY after password success)
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  user.otp = otp;
+  user.otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+  await user.save();
+  // 🔥 LOGIN TRACKING FIX (ADD THIS)
+  await UserModel.findByIdAndUpdate(user._id, {
+    lastLogin: new Date(),
+    loginAttempts: 0,
+    lockUntil: null,
+  });
+  // 5️⃣ send OTP email
+  await sendOTP(user.email, otp);
+
+  return {
+    message: 'OTP sent successfully',
+    email: user.email,
+  };
+};
+
+// =========================
+// 🔐 VERIFY OTP → JWT GENERATE (NEW FUNCTION)
+// =========================
+
+const verifyOTP = async (email: string, otp: string) => {
+  const user = await validUserForLogin(email);
+
+  // check OTP
+  if (user.otp !== otp) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid OTP');
+  }
+
+  // check expiry
+  if (user.otpExpire && user.otpExpire < new Date()) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'OTP expired');
+  }
+
+  // clear OTP
+  user.otp = undefined;
+  user.otpExpire = undefined;
+  await user.save();
+
+  // JWT payload
   const jwtPayload = {
     _id: user._id,
     name: user.name,
@@ -39,7 +114,7 @@ const LoginUser = async (payload: TLogin) => {
     status: user.status || 'active',
   };
 
-  // Generate access & refresh token
+  // generate tokens
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
@@ -58,12 +133,17 @@ const LoginUser = async (payload: TLogin) => {
   };
 };
 
+// =========================
+// 🔁 REFRESH TOKEN
+// =========================
+
 const refreshToken = async (token: string) => {
   if (!token) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'You are not Authorized');
   }
 
   let decoded: JwtPayload;
+
   try {
     decoded = jwt.verify(
       token,
@@ -73,16 +153,13 @@ const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid Refresh Token!');
   }
 
-  const { _id, email, role } = decoded;
-  if (!_id || !email || !role) {
+  const { email } = decoded;
+
+  if (!email) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid Token Payload!');
   }
 
-  // Validate user again (in case user is deleted or blocked)
   const user = await validUserForLogin(email);
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
-  }
 
   const jwtPayload = {
     _id: user._id.toString(),
@@ -92,8 +169,7 @@ const refreshToken = async (token: string) => {
     profileImage: user.profileImage,
     status: user.status || 'active',
   };
-  console.log('Decoded JWT Payload:', jwtPayload);
-  // Generate new Access Token only
+
   const newAccessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
@@ -104,6 +180,11 @@ const refreshToken = async (token: string) => {
     accessToken: newAccessToken,
   };
 };
+
+// =========================
+// 🚪 LOGOUT
+// =========================
+
 const logoutUser = async (res: any) => {
   const cookieOptions = {
     httpOnly: true,
@@ -120,8 +201,13 @@ const logoutUser = async (res: any) => {
   };
 };
 
+// =========================
+// EXPORT
+// =========================
+
 export const AuthServices = {
   LoginUser,
+  verifyOTP,
   refreshToken,
   logoutUser,
 };
