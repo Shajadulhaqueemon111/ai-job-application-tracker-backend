@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.verifyOTP = exports.loginUser = void 0;
+exports.logout = exports.toggleTwoFactor = exports.getAuditLogs = exports.verifyOTP = exports.loginUser = void 0;
 const config_1 = __importDefault(require("../../config"));
 const authMediware_1 = require("../../middleware/authMediware");
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
@@ -80,6 +80,26 @@ exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         statusCode: 200,
         success: true,
         message: 'OTP verified successfully',
+        data: result,
+    });
+}));
+exports.getAuditLogs = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const logs = yield auth_audit_model_1.default.find().sort({ createdAt: -1 }).limit(100);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Audit logs fetched successfully',
+        data: logs,
+    });
+}));
+exports.toggleTwoFactor = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    const { enable } = req.body;
+    const result = yield auth_service_1.AuthServices.toggleTwoFactor(userId, enable);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: result.message,
         data: result,
     });
 }));

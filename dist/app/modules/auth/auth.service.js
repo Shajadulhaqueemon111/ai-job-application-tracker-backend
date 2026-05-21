@@ -24,16 +24,11 @@ const user_modle_1 = __importDefault(require("../user/user.modle"));
 const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { email, password } = payload;
-    // 1️⃣ validate input
-    if (!email) {
-        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User email is undefined');
-    }
-    if (!password) {
-        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User password is undefined');
-    }
-    // 2️⃣ find user
+    if (!email)
+        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'Email is required');
+    if (!password)
+        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'Password is required');
     const user = yield (0, auth_utils_1.validUserForLogin)(email);
-    // 🔥 LOCK CHECK (এখানেই বসবে)
     if (user.lockUntil && user.lockUntil > new Date()) {
         throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Account locked');
     }
@@ -49,29 +44,42 @@ const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         }
         throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'Password does not match');
     }
-    // 3️⃣ check password
-    // const isPasswordMatched = await checkPassword(password, user.password);
-    console.log('isPasswordMatched:', isPasswordMatched);
-    if (!isPasswordMatched) {
-        throw new appError_1.default(http_status_1.default.BAD_REQUEST, 'User password is incorrect');
-    }
-    // 4️⃣ OTP generate (ONLY after password success)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 min
-    yield user.save();
-    // 🔥 LOGIN TRACKING FIX (ADD THIS)
     yield user_modle_1.default.findByIdAndUpdate(user._id, {
         lastLogin: new Date(),
         loginAttempts: 0,
         lockUntil: null,
     });
-    // 5️⃣ send OTP email
+    // ✅ 2FA disabled হলে সরাসরি token দাও
+    if (!user.twoFactorEnabled) {
+        const jwtPayload = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profileImage: user.profileImage,
+            status: user.status || 'active',
+        };
+        const accessToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_access_secret, config_1.default.jwt_access_expirense_in);
+        const refreshToken = (0, auth_jwtutils_1.createToken)(jwtPayload, config_1.default.jwt_refresh_secret, config_1.default.jwt_refresh_expirense_in);
+        return {
+            twoFactorEnabled: false,
+            accessToken,
+            refreshToken,
+            userId: user._id.toString(),
+            email: user.email,
+        };
+    }
+    // ✅ 2FA enabled হলে OTP পাঠাও
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
+    yield user.save();
     yield (0, sendOtp_1.sendOTP)(user.email, otp);
     return {
+        twoFactorEnabled: true,
         message: 'OTP sent successfully',
         email: user.email,
-        userId: user._id,
+        userId: user._id.toString(),
     };
 });
 // =========================
@@ -144,6 +152,16 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
 // =========================
 // 🚪 LOGOUT
 // =========================
+const toggleTwoFactor = (userId, enable) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_modle_1.default.findByIdAndUpdate(userId, { twoFactorEnabled: enable }, { new: true });
+    if (!user) {
+        throw new appError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    }
+    return {
+        message: `Two-factor authentication ${enable ? 'enabled' : 'disabled'}`,
+        twoFactorEnabled: user.twoFactorEnabled,
+    };
+});
 const logoutUser = (res) => __awaiter(void 0, void 0, void 0, function* () {
     const cookieOptions = {
         httpOnly: true,
@@ -165,4 +183,5 @@ exports.AuthServices = {
     verifyOTP,
     refreshToken,
     logoutUser,
+    toggleTwoFactor,
 };

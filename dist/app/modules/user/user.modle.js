@@ -68,6 +68,10 @@ exports.UserSchema = new mongoose_1.Schema({
         type: Date,
         default: null,
     },
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

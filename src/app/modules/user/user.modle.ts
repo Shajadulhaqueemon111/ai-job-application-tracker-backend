@@ -61,6 +61,10 @@ export const UserSchema = new Schema<IUser>(
       type: Date,
       default: null,
     },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -3,7 +3,6 @@ import config from '../../config';
 import User from '../user/user.modle';
 import AppError from '../../error/appError';
 import httpStatus from 'http-status';
-import bcrypt from 'bcryptjs';
 
 const verifyOTP = async (email: string, otp: string) => {
   const user = await User.findOne({ email }).select(

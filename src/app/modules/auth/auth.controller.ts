@@ -76,7 +76,29 @@ export const verifyOTP = catchAsync(async (req, res) => {
     data: result,
   });
 });
+export const getAuditLogs = catchAsync(async (req, res) => {
+  const logs = await AuditLogModel.find().sort({ createdAt: -1 }).limit(100);
 
+  sendResponse(res, {
+    statusCode: httpSattus.OK,
+    success: true,
+    message: 'Audit logs fetched successfully',
+    data: logs,
+  });
+});
+export const toggleTwoFactor = catchAsync(async (req, res) => {
+  const userId = (req as any).user._id;
+  const { enable } = req.body;
+
+  const result = await AuthServices.toggleTwoFactor(userId, enable);
+
+  sendResponse(res, {
+    statusCode: httpSattus.OK,
+    success: true,
+    message: result.message,
+    data: result,
+  });
+});
 export const logout = catchAsync(async (req, res) => {
   const { ip, browser, os, device } = GetAuditLogger(req);
 

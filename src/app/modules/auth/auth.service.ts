@@ -7,23 +7,16 @@ import { checkPassword, validUserForLogin } from './auth.utils';
 import { createToken } from './auth.jwtutils';
 import { sendOTP } from '../../utils/sendOtp';
 import UserModel from '../user/user.modle';
-import AuditLogModel from './auth.audit.model';
 
 const LoginUser = async (payload: TLogin) => {
   const { email, password } = payload;
 
-  // 1️⃣ validate input
-  if (!email) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User email is undefined');
-  }
+  if (!email) throw new AppError(httpStatus.BAD_REQUEST, 'Email is required');
+  if (!password)
+    throw new AppError(httpStatus.BAD_REQUEST, 'Password is required');
 
-  if (!password) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User password is undefined');
-  }
-
-  // 2️⃣ find user
   const user = await validUserForLogin(email);
-  // 🔥 LOCK CHECK (এখানেই বসবে)
+
   if (user.lockUntil && user.lockUntil > new Date()) {
     throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
   }
@@ -42,7 +35,6 @@ const LoginUser = async (payload: TLogin) => {
         lockUntil: new Date(Date.now() + 10 * 60 * 1000),
         loginAttempts: 0,
       });
-
       throw new AppError(
         httpStatus.FORBIDDEN,
         'Too many attempts. Account locked for 10 minutes.',
@@ -51,34 +43,57 @@ const LoginUser = async (payload: TLogin) => {
 
     throw new AppError(httpStatus.BAD_REQUEST, 'Password does not match');
   }
-  // 3️⃣ check password
-  // const isPasswordMatched = await checkPassword(password, user.password);
-  console.log('isPasswordMatched:', isPasswordMatched);
-  if (!isPasswordMatched) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User password is incorrect');
-  }
 
-  // 4️⃣ OTP generate (ONLY after password success)
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  user.otp = otp;
-  user.otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 min
-
-  await user.save();
-  // 🔥 LOGIN TRACKING FIX (ADD THIS)
   await UserModel.findByIdAndUpdate(user._id, {
     lastLogin: new Date(),
     loginAttempts: 0,
     lockUntil: null,
   });
 
-  // 5️⃣ send OTP email
+  // ✅ 2FA disabled হলে সরাসরি token দাও
+  if (!user.twoFactorEnabled) {
+    const jwtPayload = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profileImage: user.profileImage,
+      status: user.status || 'active',
+    };
+
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expirense_in,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expirense_in,
+    );
+
+    return {
+      twoFactorEnabled: false,
+      accessToken,
+      refreshToken,
+      userId: user._id.toString(),
+      email: user.email,
+    };
+  }
+
+  // ✅ 2FA enabled হলে OTP পাঠাও
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  user.otp = otp;
+  user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
+  await user.save();
   await sendOTP(user.email, otp);
 
   return {
+    twoFactorEnabled: true,
     message: 'OTP sent successfully',
     email: user.email,
-    userId: user._id,
+    userId: user._id.toString(),
   };
 };
 
@@ -185,6 +200,22 @@ const refreshToken = async (token: string) => {
 // =========================
 // 🚪 LOGOUT
 // =========================
+const toggleTwoFactor = async (userId: string, enable: boolean) => {
+  const user = await UserModel.findByIdAndUpdate(
+    userId,
+    { twoFactorEnabled: enable },
+    { new: true },
+  );
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  return {
+    message: `Two-factor authentication ${enable ? 'enabled' : 'disabled'}`,
+    twoFactorEnabled: user.twoFactorEnabled,
+  };
+};
 
 const logoutUser = async (res: any) => {
   const cookieOptions = {
@@ -211,4 +242,5 @@ export const AuthServices = {
   verifyOTP,
   refreshToken,
   logoutUser,
+  toggleTwoFactor,
 };

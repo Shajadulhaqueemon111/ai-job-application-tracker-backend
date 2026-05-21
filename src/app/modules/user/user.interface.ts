@@ -13,6 +13,7 @@ export interface IUser {
   lastLogin?: Date;
   loginAttempts?: number;
   lockUntil?: Date;
+  twoFactorEnabled?: boolean;
 }
 
 export type TUserRole = keyof typeof USER_ROLE;
