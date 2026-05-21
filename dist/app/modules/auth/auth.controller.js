@@ -14,8 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logout = exports.verifyOTP = exports.loginUser = void 0;
 const config_1 = __importDefault(require("../../config"));
+const authMediware_1 = require("../../middleware/authMediware");
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
+const auth_audit_model_1 = __importDefault(require("./auth.audit.model"));
 const auth_service_1 = require("./auth.service");
 const http_status_1 = __importDefault(require("http-status"));
 // export const loginUser = catchAsync(async (req, res) => {
@@ -42,7 +44,6 @@ const http_status_1 = __importDefault(require("http-status"));
 // });
 exports.loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield auth_service_1.AuthServices.LoginUser(req.body);
-    console.log('Login Result:', result);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -53,6 +54,16 @@ exports.loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, otp } = req.body;
     const result = yield auth_service_1.AuthServices.verifyOTP(email, otp);
+    const { ip, browser, os, device } = (0, authMediware_1.GetAuditLogger)(req);
+    yield auth_audit_model_1.default.create({
+        userId: result.userId.toString(),
+        email: email,
+        action: 'LOGIN_SUCCESS',
+        ip,
+        browser,
+        os,
+        device,
+    });
     res.cookie('accessToken', result.accessToken, {
         secure: config_1.default.NODE_ENV === 'production',
         httpOnly: true,
@@ -73,6 +84,19 @@ exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     });
 }));
 exports.logout = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    const { ip, browser, os, device } = (0, authMediware_1.GetAuditLogger)(req);
+    const userId = ((_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id) === null || _b === void 0 ? void 0 : _b.toString()) || 'unknown';
+    const email = ((_c = req.user) === null || _c === void 0 ? void 0 : _c.email) || 'unknown';
+    yield auth_audit_model_1.default.create({
+        userId,
+        email,
+        action: 'LOGOUT',
+        ip,
+        browser,
+        os,
+        device,
+    });
     const result = yield auth_service_1.AuthServices.logoutUser(res);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,

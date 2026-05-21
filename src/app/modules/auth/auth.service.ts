@@ -7,9 +7,7 @@ import { checkPassword, validUserForLogin } from './auth.utils';
 import { createToken } from './auth.jwtutils';
 import { sendOTP } from '../../utils/sendOtp';
 import UserModel from '../user/user.modle';
-
-// 👉 import your mailer (IMPORTANT)
-// import { sendOTP } from './auth.mailer';
+import AuditLogModel from './auth.audit.model';
 
 const LoginUser = async (payload: TLogin) => {
   const { email, password } = payload;
@@ -73,12 +71,14 @@ const LoginUser = async (payload: TLogin) => {
     loginAttempts: 0,
     lockUntil: null,
   });
+
   // 5️⃣ send OTP email
   await sendOTP(user.email, otp);
 
   return {
     message: 'OTP sent successfully',
     email: user.email,
+    userId: user._id,
   };
 };
 
@@ -130,6 +130,7 @@ const verifyOTP = async (email: string, otp: string) => {
   return {
     accessToken,
     refreshToken,
+    userId: user._id.toString(),
   };
 };
 

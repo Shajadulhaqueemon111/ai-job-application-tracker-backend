@@ -1,6 +1,8 @@
 import config from '../../config';
+import { GetAuditLogger } from '../../middleware/authMediware';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
+import AuditLogModel from './auth.audit.model';
 import { AuthServices } from './auth.service';
 import httpSattus from 'http-status';
 // export const loginUser = catchAsync(async (req, res) => {
@@ -29,7 +31,7 @@ import httpSattus from 'http-status';
 // });
 export const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.LoginUser(req.body);
-  console.log('Login Result:', result);
+
   sendResponse(res, {
     statusCode: httpSattus.OK,
     success: true,
@@ -37,10 +39,21 @@ export const loginUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 export const verifyOTP = catchAsync(async (req, res) => {
   const { email, otp } = req.body;
-
   const result = await AuthServices.verifyOTP(email, otp);
+  const { ip, browser, os, device } = GetAuditLogger(req);
+
+  await AuditLogModel.create({
+    userId: result.userId.toString(),
+    email: email,
+    action: 'LOGIN_SUCCESS',
+    ip,
+    browser,
+    os,
+    device,
+  });
 
   res.cookie('accessToken', result.accessToken, {
     secure: config.NODE_ENV === 'production',
@@ -65,7 +78,23 @@ export const verifyOTP = catchAsync(async (req, res) => {
 });
 
 export const logout = catchAsync(async (req, res) => {
+  const { ip, browser, os, device } = GetAuditLogger(req);
+
+  const userId = (req as any).user?._id?.toString() || 'unknown';
+  const email = (req as any).user?.email || 'unknown';
+
+  await AuditLogModel.create({
+    userId,
+    email,
+    action: 'LOGOUT',
+    ip,
+    browser,
+    os,
+    device,
+  });
+
   const result = await AuthServices.logoutUser(res);
+
   sendResponse(res, {
     statusCode: httpSattus.OK,
     success: true,

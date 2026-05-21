@@ -8,6 +8,7 @@ const route = express.Router();
 
 route.post(
   '/login',
+
   validateRequest(loginZodValidationSchema.loginValidationSchema),
   loginUser,
 );

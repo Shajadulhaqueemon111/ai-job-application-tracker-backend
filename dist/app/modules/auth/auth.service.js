@@ -21,8 +21,6 @@ const auth_utils_1 = require("./auth.utils");
 const auth_jwtutils_1 = require("./auth.jwtutils");
 const sendOtp_1 = require("../../utils/sendOtp");
 const user_modle_1 = __importDefault(require("../user/user.modle"));
-// 👉 import your mailer (IMPORTANT)
-// import { sendOTP } from './auth.mailer';
 const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { email, password } = payload;
@@ -73,6 +71,7 @@ const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     return {
         message: 'OTP sent successfully',
         email: user.email,
+        userId: user._id,
     };
 });
 // =========================
@@ -107,6 +106,7 @@ const verifyOTP = (email, otp) => __awaiter(void 0, void 0, void 0, function* ()
     return {
         accessToken,
         refreshToken,
+        userId: user._id.toString(),
     };
 });
 // =========================
