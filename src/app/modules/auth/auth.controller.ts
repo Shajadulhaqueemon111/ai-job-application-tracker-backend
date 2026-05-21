@@ -58,14 +58,14 @@ export const verifyOTP = catchAsync(async (req, res) => {
   res.cookie('accessToken', result.accessToken, {
     secure: config.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     path: '/',
   });
 
   res.cookie('refreshToken', result.refreshToken, {
     secure: config.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     path: '/',
   });
 

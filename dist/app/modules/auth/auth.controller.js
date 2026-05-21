@@ -67,13 +67,13 @@ exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     res.cookie('accessToken', result.accessToken, {
         secure: config_1.default.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/',
     });
     res.cookie('refreshToken', result.refreshToken, {
         secure: config_1.default.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/',
     });
     (0, sendResponse_1.default)(res, {
