@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getAuditLogs,
+  getMe,
   loginUser,
   logout,
   toggleTwoFactor,
@@ -13,7 +14,11 @@ import authValidateRequest from '../../middleware/authValidation';
 import { USER_ROLE } from '../user/user.constant';
 
 const route = express.Router();
-
+route.get(
+  '/me',
+  authValidateRequest(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.hr),
+  getMe,
+);
 route.post(
   '/login',
 

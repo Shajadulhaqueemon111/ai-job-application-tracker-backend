@@ -12,6 +12,7 @@ const otp_zod_schema_1 = require("./otp-zod-schema");
 const authValidation_1 = __importDefault(require("../../middleware/authValidation"));
 const user_constant_1 = require("../user/user.constant");
 const route = express_1.default.Router();
+route.get('/me', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user, user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), auth_controller_1.getMe);
 route.post('/login', (0, validationRequest_1.default)(auth_zodvalidation_1.loginZodValidationSchema.loginValidationSchema), auth_controller_1.loginUser);
 route.post('/verify-otp', (0, validationRequest_1.default)(otp_zod_schema_1.verifyOtpZodSchema), auth_controller_1.verifyOTP);
 // route.post(

@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.toggleTwoFactor = exports.getAuditLogs = exports.verifyOTP = exports.loginUser = void 0;
+exports.logout = exports.toggleTwoFactor = exports.getAuditLogs = exports.getMe = exports.verifyOTP = exports.loginUser = void 0;
 const config_1 = __importDefault(require("../../config"));
 const authMediware_1 = require("../../middleware/authMediware");
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
+const user_modle_1 = __importDefault(require("../user/user.modle"));
 const auth_audit_model_1 = __importDefault(require("./auth.audit.model"));
 const auth_service_1 = require("./auth.service");
 const http_status_1 = __importDefault(require("http-status"));
@@ -83,6 +84,18 @@ exports.verifyOTP = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
+exports.getMe = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user._id;
+    const user = yield user_modle_1.default.findById(userId);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'User fetched successfully',
+        data: { user },
+    });
+}));
 exports.getAuditLogs = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const logs = yield auth_audit_model_1.default.find().sort({ createdAt: -1 }).limit(100);
     (0, sendResponse_1.default)(res, {
@@ -99,8 +112,10 @@ exports.toggleTwoFactor = (0, catchAsync_1.default)((req, res) => __awaiter(void
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: result.message,
-        data: result,
+        message: '2FA updated successfully',
+        data: {
+            twoFactorEnabled: result.twoFactorEnabled,
+        },
     });
 }));
 exports.logout = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -2,6 +2,7 @@ import config from '../../config';
 import { GetAuditLogger } from '../../middleware/authMediware';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
+import UserModel from '../user/user.modle';
 import AuditLogModel from './auth.audit.model';
 import { AuthServices } from './auth.service';
 import httpSattus from 'http-status';
@@ -76,6 +77,20 @@ export const verifyOTP = catchAsync(async (req, res) => {
     data: result,
   });
 });
+export const getMe = catchAsync(async (req, res) => {
+  const userId = (req as any).user._id;
+  const user = await UserModel.findById(userId);
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+
+  sendResponse(res, {
+    statusCode: httpSattus.OK,
+    success: true,
+    message: 'User fetched successfully',
+    data: { user },
+  });
+});
 export const getAuditLogs = catchAsync(async (req, res) => {
   const logs = await AuditLogModel.find().sort({ createdAt: -1 }).limit(100);
 
@@ -95,8 +110,10 @@ export const toggleTwoFactor = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpSattus.OK,
     success: true,
-    message: result.message,
-    data: result,
+    message: '2FA updated successfully',
+    data: {
+      twoFactorEnabled: result.twoFactorEnabled,
+    },
   });
 });
 export const logout = catchAsync(async (req, res) => {
