@@ -21,8 +21,7 @@ router.post('/create-job', (0, authValidation_1.default)(user_constant_1.USER_RO
 router.get('/', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr, user_constant_1.USER_ROLE.user), job_controller_1.JobControllers.getAllJobs);
 // ---------------- GET SINGLE JOB ----------------
 router.get('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr, user_constant_1.USER_ROLE.user), job_controller_1.JobControllers.getSingleJob);
-router.patch('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr), (0, validationRequest_1.default)(job_validationschema_1.JobZodValidationSchema.createJobValidationSchema), // or update schema (better)
-job_controller_1.JobControllers.updateJob);
+router.patch('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr), (0, validationRequest_1.default)(job_validationschema_1.JobZodValidationSchema.createJobValidationSchema), job_controller_1.JobControllers.updateJob);
 // ---------------- DELETE JOB ----------------
 router.delete('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr), job_controller_1.JobControllers.deleteJob);
 exports.JobRoutes = router;

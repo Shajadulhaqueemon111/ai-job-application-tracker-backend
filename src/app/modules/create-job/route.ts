@@ -42,7 +42,7 @@ router.get(
 router.patch(
   '/:id',
   authValidateRequest(USER_ROLE.hr),
-  validateRequest(JobZodValidationSchema.createJobValidationSchema), // or update schema (better)
+  validateRequest(JobZodValidationSchema.createJobValidationSchema),
   JobControllers.updateJob,
 );
 

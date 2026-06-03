@@ -1,28 +1,83 @@
 import { JobModel } from '../create-job/job.modle';
-import { IApplication } from './application.interface';
-import { ApplicationModel } from './application.modle';
+import { IJobApplication } from './application.interface';
+import { JobApplication } from './application.modle';
 
 // Create a new application
-export const createApplicationInDB = async (
-  data: IApplication,
-): Promise<IApplication> => {
-  const application = new ApplicationModel(data);
-  return await application.save();
-};
-export const getAllJobsApplicationFromDB = async (): Promise<
-  IApplication[]
-> => {
-  return await ApplicationModel.find().sort({ createdAt: -1 });
+export const createApplicationInDB = async (data: IJobApplication) => {
+  const existingApplication = await JobApplication.findOne({
+    jobId: data.jobId,
+    email: data.email,
+  });
+
+  if (existingApplication) {
+    throw new Error('You have already applied for this job');
+  }
+
+  const application = await JobApplication.create(data);
+
+  await JobModel.findByIdAndUpdate(data.jobId, {
+    $inc: { totalApplicants: 1 },
+  });
+
+  return application.toObject();
 };
 
-export const deleteJobApplicationInDB = async (
-  id: string,
-): Promise<IApplication | null> => {
-  return await ApplicationModel.findByIdAndDelete(id);
+export const getAllJobsApplicationFromDB = async (page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  return await JobApplication.find()
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
 };
-// Get all applications for a job
-export const getApplicationsByJobFromDB = async (
-  jobId: string,
-): Promise<IApplication[]> => {
-  return await ApplicationModel.find({ jobId });
+
+export const deleteJobApplicationInDB = async (id: string) => {
+  const application = await JobApplication.findById(id);
+
+  if (!application) {
+    throw new Error('Application not found');
+  }
+
+  await JobModel.findByIdAndUpdate(application.jobId, {
+    $inc: { applicationCount: -1 },
+  });
+
+  return await JobApplication.findByIdAndDelete(id);
+};
+export const updateApplicationInDB = async (
+  id: string,
+  payload: Partial<IJobApplication>,
+) => {
+  const application = await JobApplication.findById(id);
+
+  if (!application) {
+    throw new Error('Application not found');
+  }
+
+  const updatedApplication = await JobApplication.findByIdAndUpdate(
+    id,
+    payload,
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+
+  return updatedApplication;
+};
+export const getUserApplicationsFromDB = async (email: string) => {
+  return await JobApplication.find({ email }).lean();
+};
+// Get a single application by ID
+export const getSingleApplicationFromDB = async (id: string) => {
+  const application = await JobApplication.findById(id)
+    .populate('jobId', 'title company location')
+    .lean();
+
+  if (!application) {
+    throw new Error('Application not found');
+  }
+
+  return application;
 };

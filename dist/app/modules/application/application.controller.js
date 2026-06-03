@@ -12,20 +12,47 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getApplicationsByJob = exports.deleteJobApplication = exports.getAllJobsApplication = exports.createApplication = void 0;
+exports.getSingleJobApplication = exports.updateJobApplication = exports.deleteJobApplication = exports.getAllJobsApplication = exports.getMyApplications = exports.createApplication = void 0;
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const http_status_1 = __importDefault(require("http-status"));
 const application_service_1 = require("./application.service");
+const resumi_cloudinary_upload_1 = require("./resumi-cloudinary-upload");
 // Global Job Search
 // Submit application
-exports.createApplication = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const payload = req.body;
+// export const createApplication = catchAsync(async (req, res) => {
+//   const payload = req.body;
+//   const result = await createApplicationInDB(payload);
+//   sendResponse(res, {
+//     statusCode: httpStatus.CREATED,
+//     success: true,
+//     message: 'Application submitted successfully',
+//     data: result,
+//   });
+// });
+const createApplication = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const file = req.file;
+    if (!file) {
+        throw new Error('Resume file is required');
+    }
+    // 🔥 upload to cloudinary
+    const uploaded = yield (0, resumi_cloudinary_upload_1.uploadToCloudinary)(file);
+    const payload = Object.assign(Object.assign({}, req.body), { resumeUrl: uploaded.secure_url });
     const result = yield (0, application_service_1.createApplicationInDB)(payload);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.CREATED,
+    res.status(201).json({
         success: true,
         message: 'Application submitted successfully',
+        data: result,
+    });
+});
+exports.createApplication = createApplication;
+exports.getMyApplications = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = req.query.email;
+    const result = yield (0, application_service_1.getUserApplicationsFromDB)(email);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: 'My applications retrieved successfully',
         data: result,
     });
 }));
@@ -48,14 +75,25 @@ exports.deleteJobApplication = (0, catchAsync_1.default)((req, res) => __awaiter
         data: result,
     });
 }));
-// Get applications by job
-exports.getApplicationsByJob = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { jobId } = req.params;
-    const result = yield (0, application_service_1.getApplicationsByJobFromDB)(jobId);
+exports.updateJobApplication = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const payload = req.body;
+    const result = yield (0, application_service_1.updateApplicationInDB)(id, payload);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'Applications retrieved successfully',
+        message: 'Job updated successfully',
         data: result,
     });
 }));
+exports.getSingleJobApplication = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const result = yield (0, application_service_1.getSingleApplicationFromDB)(id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Job application retrieved successfully',
+        data: result,
+    });
+}));
+// Get applications by job

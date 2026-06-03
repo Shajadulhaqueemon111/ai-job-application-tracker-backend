@@ -9,24 +9,69 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getApplicationsByJobFromDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
+exports.getSingleApplicationFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
+const job_modle_1 = require("../create-job/job.modle");
 const application_modle_1 = require("./application.modle");
 // Create a new application
 const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
-    const application = new application_modle_1.ApplicationModel(data);
-    return yield application.save();
+    const existingApplication = yield application_modle_1.JobApplication.findOne({
+        jobId: data.jobId,
+        email: data.email,
+    });
+    if (existingApplication) {
+        throw new Error('You have already applied for this job');
+    }
+    const application = yield application_modle_1.JobApplication.create(data);
+    yield job_modle_1.JobModel.findByIdAndUpdate(data.jobId, {
+        $inc: { totalApplicants: 1 },
+    });
+    return application.toObject();
 });
 exports.createApplicationInDB = createApplicationInDB;
-const getAllJobsApplicationFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield application_modle_1.ApplicationModel.find().sort({ createdAt: -1 });
+const getAllJobsApplicationFromDB = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    return yield application_modle_1.JobApplication.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
 });
 exports.getAllJobsApplicationFromDB = getAllJobsApplicationFromDB;
 const deleteJobApplicationInDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield application_modle_1.ApplicationModel.findByIdAndDelete(id);
+    const application = yield application_modle_1.JobApplication.findById(id);
+    if (!application) {
+        throw new Error('Application not found');
+    }
+    yield job_modle_1.JobModel.findByIdAndUpdate(application.jobId, {
+        $inc: { applicationCount: -1 },
+    });
+    return yield application_modle_1.JobApplication.findByIdAndDelete(id);
 });
 exports.deleteJobApplicationInDB = deleteJobApplicationInDB;
-// Get all applications for a job
-const getApplicationsByJobFromDB = (jobId) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield application_modle_1.ApplicationModel.find({ jobId });
+const updateApplicationInDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const application = yield application_modle_1.JobApplication.findById(id);
+    if (!application) {
+        throw new Error('Application not found');
+    }
+    const updatedApplication = yield application_modle_1.JobApplication.findByIdAndUpdate(id, payload, {
+        new: true,
+        runValidators: true,
+    });
+    return updatedApplication;
 });
-exports.getApplicationsByJobFromDB = getApplicationsByJobFromDB;
+exports.updateApplicationInDB = updateApplicationInDB;
+const getUserApplicationsFromDB = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield application_modle_1.JobApplication.find({ email }).lean();
+});
+exports.getUserApplicationsFromDB = getUserApplicationsFromDB;
+// Get a single application by ID
+const getSingleApplicationFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const application = yield application_modle_1.JobApplication.findById(id)
+        .populate('jobId', 'title company location')
+        .lean();
+    if (!application) {
+        throw new Error('Application not found');
+    }
+    return application;
+});
+exports.getSingleApplicationFromDB = getSingleApplicationFromDB;
