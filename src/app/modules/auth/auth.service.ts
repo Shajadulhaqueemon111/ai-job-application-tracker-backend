@@ -16,7 +16,12 @@ const LoginUser = async (payload: TLogin) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'Password is required');
 
   const user = await validUserForLogin(email);
-
+  if (user.status === 'blocked') {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      'Your account has been blocked 🚫',
+    );
+  }
   if (user.lockUntil && user.lockUntil > new Date()) {
     throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
   }

@@ -28,8 +28,12 @@ route.post(
   userController.createHR,
 );
 
-route.get('/', userController.getAllUser);
-route.get('/:id', userController.getSingleUser);
+route.get('/', authValidateRequest(USER_ROLE.admin), userController.getAllUser);
+route.get(
+  '/:id',
+  authValidateRequest(USER_ROLE.admin),
+  userController.getSingleUser,
+);
 route.patch(
   '/:id',
   authValidateRequest(USER_ROLE.admin),

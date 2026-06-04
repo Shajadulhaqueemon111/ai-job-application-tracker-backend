@@ -27,7 +27,7 @@ router.post(
 router.get(
   '/',
 
-  authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user, USER_ROLE.admin),
   JobControllers.getAllJobs,
 );
 

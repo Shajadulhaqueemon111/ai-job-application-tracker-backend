@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export interface IJobApplication {
   jobId: Types.ObjectId;
-  userId?: string; // যদি logged-in user থাকে
+  userId?: string;
 
   fullName: string;
   email: string;

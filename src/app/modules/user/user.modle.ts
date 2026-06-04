@@ -24,7 +24,7 @@ export const UserSchema = new Schema<IUser>(
     },
     status: {
       type: String,
-      enum: ['active', 'block'],
+      enum: ['active', 'blocked'],
       default: 'active',
     },
     role: {

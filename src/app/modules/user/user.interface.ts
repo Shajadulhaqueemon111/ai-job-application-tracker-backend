@@ -3,7 +3,7 @@ import { USER_ROLE } from './user.constant';
 export interface IUser {
   name: string;
   profileImage: string;
-  status?: 'active' | 'block';
+  status?: 'active' | 'blocked';
   email: string;
   password: string;
   role: 'user' | 'admin' | 'hr';

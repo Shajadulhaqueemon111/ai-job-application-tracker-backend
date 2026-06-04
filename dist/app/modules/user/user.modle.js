@@ -36,7 +36,7 @@ exports.UserSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'block'],
+        enum: ['active', 'blocked'],
         default: 'active',
     },
     role: {
