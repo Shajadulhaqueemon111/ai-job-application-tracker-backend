@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleApplicationFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
+exports.getSingleApplicationFromDB = exports.getMyApplicationsFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
 const job_modle_1 = require("../create-job/job.modle");
 const application_modle_1 = require("./application.modle");
 // Create a new application
@@ -17,6 +17,7 @@ const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, functi
     const existingApplication = yield application_modle_1.JobApplication.findOne({
         jobId: data.jobId,
         email: data.email,
+        userId: data.userId,
     });
     if (existingApplication) {
         throw new Error('You have already applied for this job');
@@ -60,10 +61,17 @@ const updateApplicationInDB = (id, payload) => __awaiter(void 0, void 0, void 0,
     return updatedApplication;
 });
 exports.updateApplicationInDB = updateApplicationInDB;
-const getUserApplicationsFromDB = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield application_modle_1.JobApplication.find({ email }).lean();
+const getUserApplicationsFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield application_modle_1.JobApplication.find({ userId }).lean();
 });
 exports.getUserApplicationsFromDB = getUserApplicationsFromDB;
+const getMyApplicationsFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield application_modle_1.JobApplication.find({ userId })
+        .populate('jobId', 'title company location salary jobType')
+        .sort({ createdAt: -1 })
+        .lean();
+});
+exports.getMyApplicationsFromDB = getMyApplicationsFromDB;
 // Get a single application by ID
 const getSingleApplicationFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const application = yield application_modle_1.JobApplication.findById(id)

@@ -5,6 +5,7 @@ import {
   createApplicationInDB,
   deleteJobApplicationInDB,
   getAllJobsApplicationFromDB,
+  getMyApplicationsFromDB,
   getSingleApplicationFromDB,
   getUserApplicationsFromDB,
   updateApplicationInDB,
@@ -34,9 +35,10 @@ export const createApplication = async (req: any, res: any) => {
 
   // 🔥 upload to cloudinary
   const uploaded: any = await uploadToCloudinary(file);
-
+  const user = req.user;
   const payload = {
     ...req.body,
+    userId: user._id,
     resumeUrl: uploaded.secure_url, // 👈 here
   };
 
@@ -49,9 +51,9 @@ export const createApplication = async (req: any, res: any) => {
   });
 };
 export const getMyApplications = catchAsync(async (req, res) => {
-  const email = req.query.email;
+  const userId = req.query.userId;
 
-  const result = await getUserApplicationsFromDB(email as string);
+  const result = await getUserApplicationsFromDB(userId as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -60,6 +62,19 @@ export const getMyApplications = catchAsync(async (req, res) => {
     data: result,
   });
 });
+export const getMyAllApplications = catchAsync(async (req, res) => {
+  const userId = req.query.userId;
+
+  const result = await getMyApplicationsFromDB(userId as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'My applications retrieved successfully',
+    data: result,
+  });
+});
+
 export const getAllJobsApplication = catchAsync(async (req, res) => {
   const result = await getAllJobsApplicationFromDB();
 

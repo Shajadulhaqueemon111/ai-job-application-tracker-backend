@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleJobApplication = exports.updateJobApplication = exports.deleteJobApplication = exports.getAllJobsApplication = exports.getMyApplications = exports.createApplication = void 0;
+exports.getSingleJobApplication = exports.updateJobApplication = exports.deleteJobApplication = exports.getAllJobsApplication = exports.getMyAllApplications = exports.getMyApplications = exports.createApplication = void 0;
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const http_status_1 = __importDefault(require("http-status"));
@@ -37,7 +37,8 @@ const createApplication = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
     // 🔥 upload to cloudinary
     const uploaded = yield (0, resumi_cloudinary_upload_1.uploadToCloudinary)(file);
-    const payload = Object.assign(Object.assign({}, req.body), { resumeUrl: uploaded.secure_url });
+    const user = req.user;
+    const payload = Object.assign(Object.assign({}, req.body), { userId: user._id, resumeUrl: uploaded.secure_url });
     const result = yield (0, application_service_1.createApplicationInDB)(payload);
     res.status(201).json({
         success: true,
@@ -47,8 +48,18 @@ const createApplication = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.createApplication = createApplication;
 exports.getMyApplications = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.query.email;
-    const result = yield (0, application_service_1.getUserApplicationsFromDB)(email);
+    const userId = req.query.userId;
+    const result = yield (0, application_service_1.getUserApplicationsFromDB)(userId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: 'My applications retrieved successfully',
+        data: result,
+    });
+}));
+exports.getMyAllApplications = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.query.userId;
+    const result = yield (0, application_service_1.getMyApplicationsFromDB)(userId);
     (0, sendResponse_1.default)(res, {
         statusCode: 200,
         success: true,

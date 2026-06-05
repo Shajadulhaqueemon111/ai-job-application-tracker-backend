@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export interface IJobApplication {
   jobId: Types.ObjectId;
-  userId?: string;
+  userId: string;
 
   fullName: string;
   email: string;
@@ -18,7 +18,14 @@ export interface IJobApplication {
 
   agreement: boolean;
 
-  status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected';
+  status:
+    | 'pending'
+    | 'in_review'
+    | 'shortlisted'
+    | 'interviewed'
+    | 'offered'
+    | 'hired'
+    | 'rejected';
 
   createdAt?: Date;
   updatedAt?: Date;

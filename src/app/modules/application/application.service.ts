@@ -7,6 +7,7 @@ export const createApplicationInDB = async (data: IJobApplication) => {
   const existingApplication = await JobApplication.findOne({
     jobId: data.jobId,
     email: data.email,
+    userId: data.userId,
   });
 
   if (existingApplication) {
@@ -66,8 +67,14 @@ export const updateApplicationInDB = async (
 
   return updatedApplication;
 };
-export const getUserApplicationsFromDB = async (email: string) => {
-  return await JobApplication.find({ email }).lean();
+export const getUserApplicationsFromDB = async (userId: string) => {
+  return await JobApplication.find({ userId }).lean();
+};
+export const getMyApplicationsFromDB = async (userId: string) => {
+  return await JobApplication.find({ userId })
+    .populate('jobId', 'title company location salary jobType')
+    .sort({ createdAt: -1 })
+    .lean();
 };
 // Get a single application by ID
 export const getSingleApplicationFromDB = async (id: string) => {

@@ -3,6 +3,7 @@ import {
   createApplication,
   deleteJobApplication,
   getAllJobsApplication,
+  getMyAllApplications,
   getMyApplications,
   updateJobApplication,
 } from './application.controller';
@@ -35,6 +36,11 @@ route.get(
   '/my-applications',
   authValidateRequest(USER_ROLE.user),
   getMyApplications,
+);
+route.get(
+  '/my-all-applications',
+  authValidateRequest(USER_ROLE.user),
+  getMyAllApplications,
 );
 // Get all applications for a job (admin only)
 route.get(
