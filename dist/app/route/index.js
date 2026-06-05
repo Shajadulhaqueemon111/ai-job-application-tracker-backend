@@ -7,6 +7,7 @@ const application_route_1 = require("../modules/application/application.route");
 const admin_route_1 = require("../modules/admin/admin.route");
 const route_1 = require("../modules/create-job/route");
 const hr_route_1 = require("../modules/hr/hr-route");
+const notification_route_1 = require("../modules/notification/notification.route");
 const router = (0, express_1.Router)();
 const moduleRouter = [
     {
@@ -32,6 +33,10 @@ const moduleRouter = [
     {
         path: '/applications',
         route: application_route_1.ApplicationRoute,
+    },
+    {
+        path: '/notifications',
+        route: notification_route_1.NotificationRoutes,
     },
 ];
 moduleRouter.forEach((route) => router.use(route.path, route.route));

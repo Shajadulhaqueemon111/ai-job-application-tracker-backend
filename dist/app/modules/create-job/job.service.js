@@ -10,9 +10,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobServices = void 0;
+const soket_1 = require("../../utils/soket");
+const notification_model_1 = require("../notification/notification.model");
 const job_modle_1 = require("./job.modle");
 const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield job_modle_1.JobModel.create(payload);
+    // 🔥 save notification in DB
+    const notification = yield notification_model_1.NotificationModel.create({
+        userId: null,
+        type: 'NEW_JOB',
+        title: 'New Job Alert 🚀',
+        message: `${result.title} job just posted`,
+        read: false,
+    });
+    // 🔥 safe socket emit
+    try {
+        const io = (0, soket_1.getIO)();
+        io.emit('notification', notification);
+    }
+    catch (error) {
+        console.log('Socket not ready yet:",error');
+    }
     return result;
 });
 const getAllJobsFromDB = () => __awaiter(void 0, void 0, void 0, function* () {

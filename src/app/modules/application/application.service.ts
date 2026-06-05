@@ -1,4 +1,5 @@
 import { JobModel } from '../create-job/job.modle';
+import { NotificationModel } from '../notification/notification.model';
 import { IJobApplication } from './application.interface';
 import { JobApplication } from './application.modle';
 
@@ -16,9 +17,23 @@ export const createApplicationInDB = async (data: IJobApplication) => {
 
   const application = await JobApplication.create(data);
 
-  await JobModel.findByIdAndUpdate(data.jobId, {
-    $inc: { totalApplicants: 1 },
-  });
+  // 🔥 get job with HR
+  const job = await JobModel.findById(data.jobId);
+
+  if (job) {
+    await JobModel.findByIdAndUpdate(data.jobId, {
+      $inc: { totalApplicants: 1 },
+    });
+
+    // 🔥 notify HR (IMPORTANT PART)
+    await NotificationModel.create({
+      userId: job.createdBy, // 👈 HR ID
+      title: 'New Job Application',
+      message: `${data.fullName} applied to your job: ${job.title}`,
+      type: 'APPLICATION',
+      read: false,
+    });
+  }
 
   return application.toObject();
 };

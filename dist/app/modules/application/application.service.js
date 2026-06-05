@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSingleApplicationFromDB = exports.getMyApplicationsFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
 const job_modle_1 = require("../create-job/job.modle");
+const notification_model_1 = require("../notification/notification.model");
 const application_modle_1 = require("./application.modle");
 // Create a new application
 const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -23,9 +24,21 @@ const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, functi
         throw new Error('You have already applied for this job');
     }
     const application = yield application_modle_1.JobApplication.create(data);
-    yield job_modle_1.JobModel.findByIdAndUpdate(data.jobId, {
-        $inc: { totalApplicants: 1 },
-    });
+    // 🔥 get job with HR
+    const job = yield job_modle_1.JobModel.findById(data.jobId);
+    if (job) {
+        yield job_modle_1.JobModel.findByIdAndUpdate(data.jobId, {
+            $inc: { totalApplicants: 1 },
+        });
+        // 🔥 notify HR (IMPORTANT PART)
+        yield notification_model_1.NotificationModel.create({
+            userId: job.createdBy, // 👈 HR ID
+            title: 'New Job Application',
+            message: `${data.fullName} applied to your job: ${job.title}`,
+            type: 'APPLICATION',
+            read: false,
+        });
+    }
     return application.toObject();
 });
 exports.createApplicationInDB = createApplicationInDB;

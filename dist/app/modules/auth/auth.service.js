@@ -32,9 +32,9 @@ const LoginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     if (user.status === 'blocked') {
         throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Your account has been blocked 🚫');
     }
-    if (user.lockUntil && user.lockUntil > new Date()) {
-        throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Account locked');
-    }
+    // if (user.lockUntil && user.lockUntil > new Date()) {
+    //   throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
+    // }
     const isPasswordMatched = yield (0, auth_utils_1.checkPassword)(password, user.password);
     if (!isPasswordMatched) {
         const updatedUser = yield user_modle_1.default.findByIdAndUpdate(user._id, { $inc: { loginAttempts: 1 } }, { new: true });

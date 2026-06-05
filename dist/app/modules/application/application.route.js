@@ -15,8 +15,8 @@ const route = express_1.default.Router();
 route.get('/', (0, authValidation_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), application_controller_1.getAllJobsApplication);
 // Submit a job application
 route.post('/create-application', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user), resume_upload_1.upload.single('resume'), (0, validationRequest_1.default)(application_zodvalidation_1.ApplicationZodValidationSchema.createApplicationValidationSchema), application_controller_1.createApplication);
-route.get('/my-applications', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user), application_controller_1.getMyApplications);
-route.get('/my-all-applications', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user), application_controller_1.getMyAllApplications);
+route.get('/my-applications', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user, user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), application_controller_1.getMyApplications);
+route.get('/my-all-applications', (0, authValidation_1.default)(user_constant_1.USER_ROLE.user, user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), application_controller_1.getMyAllApplications);
 // Get all applications for a job (admin only)
 route.get('/:jobId', (0, authValidation_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), application_controller_1.getAllJobsApplication);
 route.delete('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.admin, user_constant_1.USER_ROLE.hr), application_controller_1.deleteJobApplication);

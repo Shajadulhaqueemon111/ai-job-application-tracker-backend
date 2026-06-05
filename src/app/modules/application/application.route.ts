@@ -34,12 +34,12 @@ route.post(
 );
 route.get(
   '/my-applications',
-  authValidateRequest(USER_ROLE.user),
+  authValidateRequest(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.hr),
   getMyApplications,
 );
 route.get(
   '/my-all-applications',
-  authValidateRequest(USER_ROLE.user),
+  authValidateRequest(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.hr),
   getMyAllApplications,
 );
 // Get all applications for a job (admin only)

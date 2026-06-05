@@ -22,9 +22,9 @@ const LoginUser = async (payload: TLogin) => {
       'Your account has been blocked 🚫',
     );
   }
-  if (user.lockUntil && user.lockUntil > new Date()) {
-    throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
-  }
+  // if (user.lockUntil && user.lockUntil > new Date()) {
+  //   throw new AppError(httpStatus.FORBIDDEN, 'Account locked');
+  // }
 
   const isPasswordMatched = await checkPassword(password, user.password);
 

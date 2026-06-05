@@ -6,6 +6,7 @@ import { ApplicationRoute } from '../modules/application/application.route';
 import { adminRoute } from '../modules/admin/admin.route';
 import { JobRoutes } from '../modules/create-job/route';
 import { HRRoutes } from '../modules/hr/hr-route';
+import { NotificationRoutes } from '../modules/notification/notification.route';
 
 const router = Router();
 const moduleRouter = [
@@ -32,6 +33,10 @@ const moduleRouter = [
   {
     path: '/applications',
     route: ApplicationRoute,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
   },
 ];
 

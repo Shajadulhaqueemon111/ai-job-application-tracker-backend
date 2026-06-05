@@ -1,8 +1,29 @@
+import { getIO } from '../../utils/soket';
+
+import { NotificationModel } from '../notification/notification.model';
 import { TJob } from './job.interface';
 import { JobModel } from './job.modle';
 
 const createJobIntoDB = async (payload: TJob) => {
   const result = await JobModel.create(payload);
+
+  // 🔥 save notification in DB
+  const notification = await NotificationModel.create({
+    userId: null,
+    type: 'NEW_JOB',
+    title: 'New Job Alert 🚀',
+    message: `${result.title} job just posted`,
+    read: false,
+  });
+
+  // 🔥 safe socket emit
+  try {
+    const io = getIO();
+
+    io.emit('notification', notification);
+  } catch (error) {
+    console.log('Socket not ready yet:",error');
+  }
 
   return result;
 };

@@ -21,7 +21,6 @@ route.get(
 );
 route.post(
   '/login',
-
   validateRequest(loginZodValidationSchema.loginValidationSchema),
   loginUser,
 );
