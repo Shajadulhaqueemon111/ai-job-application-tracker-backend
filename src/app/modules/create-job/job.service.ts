@@ -28,8 +28,15 @@ const createJobIntoDB = async (payload: TJob) => {
   return result;
 };
 
-const getAllJobsFromDB = async () => {
-  const result = await JobModel.find();
+// const getAllJobsFromDB = async () => {
+//   const result = await JobModel.find();
+
+//   return result;
+// };
+const getAllJobsFromDB = async (userId: string) => {
+  const result = await JobModel.find({
+    createdBy: userId,
+  }).sort({ createdAt: -1 });
 
   return result;
 };

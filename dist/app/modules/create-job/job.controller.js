@@ -60,7 +60,9 @@ const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 const getAllJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield job_service_1.JobServices.getAllJobsFromDB();
+    var _a;
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id; // 🔥 FIXED (_id not id)
+    const result = yield job_service_1.JobServices.getAllJobsFromDB(userId);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

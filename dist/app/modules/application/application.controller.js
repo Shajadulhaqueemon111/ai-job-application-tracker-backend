@@ -68,7 +68,7 @@ exports.getMyAllApplications = (0, catchAsync_1.default)((req, res) => __awaiter
     });
 }));
 exports.getAllJobsApplication = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, application_service_1.getAllJobsApplicationFromDB)();
+    const result = yield (0, application_service_1.getAllJobsApplicationFromDB)(req.query);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

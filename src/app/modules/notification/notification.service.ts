@@ -34,4 +34,10 @@ export const NotificationService = {
       { new: true },
     );
   },
+  deleteNotification: async (id: string, userId: string) => {
+    return await NotificationModel.findOneAndDelete({
+      _id: id,
+      userId: userId, // IMPORTANT
+    });
+  },
 };

@@ -76,7 +76,7 @@ export const getMyAllApplications = catchAsync(async (req, res) => {
 });
 
 export const getAllJobsApplication = catchAsync(async (req, res) => {
-  const result = await getAllJobsApplicationFromDB();
+  const result = await getAllJobsApplicationFromDB(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

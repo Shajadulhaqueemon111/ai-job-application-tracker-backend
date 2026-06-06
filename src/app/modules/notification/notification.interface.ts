@@ -3,8 +3,12 @@ export type NotificationType =
   | 'INTERVIEW'
   | 'APPLICATION_UPDATE'
   | 'SHORTLISTED'
-  | 'REJECTED'
+  | 'APPLICATION_STATUS_UPDATED'
+  | 'INTERVIEWED'
   | 'AI_SUGGESTION'
+  | 'OFFERED'
+  | 'HIRED'
+  | 'REJECTED'
   | 'SYSTEM';
 
 export interface INotification {

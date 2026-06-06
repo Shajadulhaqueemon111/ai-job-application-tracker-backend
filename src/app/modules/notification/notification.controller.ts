@@ -12,9 +12,11 @@ export const NotificationController = {
   },
 
   getNotifications: async (req: Request, res: Response) => {
-    const userId = req.query.userId as string;
+    const userId = req.user._id;
 
-    const result = await NotificationService.getNotifications(userId);
+    const result = await NotificationService.getNotifications(
+      userId.toString(),
+    );
 
     res.status(200).json({
       success: true,
@@ -24,6 +26,19 @@ export const NotificationController = {
 
   markAsRead: async (req: Request, res: Response) => {
     const result = await NotificationService.markAsRead(req.params.id);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  },
+
+  deleteNotification: async (req: Request, res: Response) => {
+    const userId = req.user?.id as string;
+    const result = await NotificationService.deleteNotification(
+      req.params.id,
+      userId,
+    );
 
     res.json({
       success: true,

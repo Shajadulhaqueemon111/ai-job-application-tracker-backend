@@ -27,4 +27,10 @@ router.patch(
   NotificationController.markAsRead,
 );
 
+router.delete(
+  '/:id',
+  authValidateRequest(USER_ROLE.admin, USER_ROLE.hr, USER_ROLE.user),
+  NotificationController.deleteNotification,
+);
+
 export const NotificationRoutes = router;

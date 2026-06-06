@@ -33,8 +33,14 @@ const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function*
     }
     return result;
 });
-const getAllJobsFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield job_modle_1.JobModel.find();
+// const getAllJobsFromDB = async () => {
+//   const result = await JobModel.find();
+//   return result;
+// };
+const getAllJobsFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield job_modle_1.JobModel.find({
+        createdBy: userId,
+    }).sort({ createdAt: -1 });
     return result;
 });
 const getSingleJobFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {

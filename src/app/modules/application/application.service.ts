@@ -1,3 +1,4 @@
+import { getIO } from '../../utils/soket';
 import { JobModel } from '../create-job/job.modle';
 import { NotificationModel } from '../notification/notification.model';
 import { IJobApplication } from './application.interface';
@@ -38,14 +39,52 @@ export const createApplicationInDB = async (data: IJobApplication) => {
   return application.toObject();
 };
 
-export const getAllJobsApplicationFromDB = async (page = 1, limit = 10) => {
-  const skip = (page - 1) * limit;
+export const getAllJobsApplicationFromDB = async (query: any) => {
+  const { page = 1, limit = 10, hrId, userId, jobId, search, status } = query;
 
-  return await JobApplication.find()
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const filter: any = {};
+
+  // 🔥 HR wise filter (IMPORTANT)
+  if (hrId) {
+    // HR → job relation
+    const jobs = await JobModel.find({ createdBy: hrId }).select('_id');
+    const jobIds = jobs.map((j) => j._id);
+
+    filter.jobId = { $in: jobIds };
+  }
+
+  if (userId) filter.userId = userId;
+  if (jobId) filter.jobId = jobId;
+  if (status) filter.status = status;
+
+  // 🔥 search (name/email/phone)
+  if (search) {
+    filter.$or = [
+      { fullName: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+      { phone: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const data = await JobApplication.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit)
+    .limit(Number(limit))
+    .populate('jobId', 'title company location salary jobType')
     .lean();
+
+  const total = await JobApplication.countDocuments(filter);
+
+  return {
+    data,
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+    },
+  };
 };
 
 export const deleteJobApplicationInDB = async (id: string) => {
@@ -78,7 +117,39 @@ export const updateApplicationInDB = async (
       new: true,
       runValidators: true,
     },
-  );
+  )
+    .populate('userId')
+    .populate('jobId')
+    .lean(); // 🔥 important for clean object
+
+  if (!updatedApplication?.userId) return;
+
+  // ----------------------------
+  // ✅ Create Notification (SAFE)
+  // ----------------------------
+  const notification = await NotificationModel.create({
+    userId: updatedApplication.userId?._id || updatedApplication.userId,
+    type: 'APPLICATION_STATUS_UPDATED',
+    title: 'Application Status Updated',
+    message: `Your application for ${
+      (updatedApplication.jobId as any)?.title || 'a job'
+    } has been updated to ${updatedApplication.status}`,
+    read: false,
+  });
+
+  // ----------------------------
+  // ✅ Socket Emit (SAFE)
+  // ----------------------------
+  try {
+    const io = getIO();
+
+    io.to(updatedApplication.userId?.toString()).emit(
+      'notification',
+      notification,
+    );
+  } catch (error) {
+    console.log('Socket not ready yet:', error);
+  }
 
   return updatedApplication;
 };

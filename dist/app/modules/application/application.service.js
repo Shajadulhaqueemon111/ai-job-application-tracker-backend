@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSingleApplicationFromDB = exports.getMyApplicationsFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
+const soket_1 = require("../../utils/soket");
 const job_modle_1 = require("../create-job/job.modle");
 const notification_model_1 = require("../notification/notification.model");
 const application_modle_1 = require("./application.modle");
@@ -42,13 +43,46 @@ const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, functi
     return application.toObject();
 });
 exports.createApplicationInDB = createApplicationInDB;
-const getAllJobsApplicationFromDB = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (page = 1, limit = 10) {
-    const skip = (page - 1) * limit;
-    return yield application_modle_1.JobApplication.find()
+const getAllJobsApplicationFromDB = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const { page = 1, limit = 10, hrId, userId, jobId, search, status } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const filter = {};
+    // 🔥 HR wise filter (IMPORTANT)
+    if (hrId) {
+        // HR → job relation
+        const jobs = yield job_modle_1.JobModel.find({ createdBy: hrId }).select('_id');
+        const jobIds = jobs.map((j) => j._id);
+        filter.jobId = { $in: jobIds };
+    }
+    if (userId)
+        filter.userId = userId;
+    if (jobId)
+        filter.jobId = jobId;
+    if (status)
+        filter.status = status;
+    // 🔥 search (name/email/phone)
+    if (search) {
+        filter.$or = [
+            { fullName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { phone: { $regex: search, $options: 'i' } },
+        ];
+    }
+    const data = yield application_modle_1.JobApplication.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit)
+        .limit(Number(limit))
+        .populate('jobId', 'title company location salary jobType')
         .lean();
+    const total = yield application_modle_1.JobApplication.countDocuments(filter);
+    return {
+        data,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+        },
+    };
 });
 exports.getAllJobsApplicationFromDB = getAllJobsApplicationFromDB;
 const deleteJobApplicationInDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
@@ -63,6 +97,7 @@ const deleteJobApplicationInDB = (id) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.deleteJobApplicationInDB = deleteJobApplicationInDB;
 const updateApplicationInDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     const application = yield application_modle_1.JobApplication.findById(id);
     if (!application) {
         throw new Error('Application not found');
@@ -70,7 +105,32 @@ const updateApplicationInDB = (id, payload) => __awaiter(void 0, void 0, void 0,
     const updatedApplication = yield application_modle_1.JobApplication.findByIdAndUpdate(id, payload, {
         new: true,
         runValidators: true,
+    })
+        .populate('userId')
+        .populate('jobId')
+        .lean(); // 🔥 important for clean object
+    if (!(updatedApplication === null || updatedApplication === void 0 ? void 0 : updatedApplication.userId))
+        return;
+    // ----------------------------
+    // ✅ Create Notification (SAFE)
+    // ----------------------------
+    const notification = yield notification_model_1.NotificationModel.create({
+        userId: ((_a = updatedApplication.userId) === null || _a === void 0 ? void 0 : _a._id) || updatedApplication.userId,
+        type: 'APPLICATION_STATUS_UPDATED',
+        title: 'Application Status Updated',
+        message: `Your application for ${((_b = updatedApplication.jobId) === null || _b === void 0 ? void 0 : _b.title) || 'a job'} has been updated to ${updatedApplication.status}`,
+        read: false,
     });
+    // ----------------------------
+    // ✅ Socket Emit (SAFE)
+    // ----------------------------
+    try {
+        const io = (0, soket_1.getIO)();
+        io.to((_c = updatedApplication.userId) === null || _c === void 0 ? void 0 : _c.toString()).emit('notification', notification);
+    }
+    catch (error) {
+        console.log('Socket not ready yet:', error);
+    }
     return updatedApplication;
 });
 exports.updateApplicationInDB = updateApplicationInDB;

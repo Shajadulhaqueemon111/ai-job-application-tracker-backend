@@ -59,7 +59,9 @@ const createJob = async (req: Request, res: Response) => {
 };
 
 const getAllJobs = async (req: Request, res: Response) => {
-  const result = await JobServices.getAllJobsFromDB();
+  const userId = req.user?._id; // 🔥 FIXED (_id not id)
+
+  const result = await JobServices.getAllJobsFromDB(userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
