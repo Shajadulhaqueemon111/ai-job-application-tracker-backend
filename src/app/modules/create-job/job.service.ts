@@ -1,4 +1,5 @@
 import { getIO } from '../../utils/soket';
+import { JobApplication } from '../application/application.modle';
 
 import { NotificationModel } from '../notification/notification.model';
 import { TJob } from './job.interface';
@@ -28,12 +29,26 @@ const createJobIntoDB = async (payload: TJob) => {
   return result;
 };
 
-// const getAllJobsFromDB = async () => {
-//   const result = await JobModel.find();
+// job.service.ts ফাইলের উদাহরণ
+const getAllJobsFromDB = async () => {
+  const jobs = await JobModel.find().lean();
 
-//   return result;
-// };
-const getAllJobsFromDB = async (userId: string) => {
+  // প্রতি জবের জন্য রিয়েল-টাইম অ্যাপ্লিকেশন সংখ্যা গণনা করা
+  const updatedJobs = await Promise.all(
+    jobs.map(async (job) => {
+      const activeApplicationsCount = await JobApplication.countDocuments({
+        jobId: job._id,
+      });
+      return {
+        ...job,
+        totalApplicants: activeApplicationsCount, // ডাটাবেজে যা-ই থাকুক, রিয়েল কাউন্ট দেখাবে
+      };
+    }),
+  );
+
+  return updatedJobs;
+};
+const getHrAllJobsFromDB = async (userId: string) => {
   const result = await JobModel.find({
     createdBy: userId,
   }).sort({ createdAt: -1 });
@@ -63,6 +78,7 @@ const deleteJobFromDB = async (id: string) => {
 
 export const JobServices = {
   createJobIntoDB,
+  getHrAllJobsFromDB,
   getAllJobsFromDB,
   getSingleJobFromDB,
   deleteJobFromDB,

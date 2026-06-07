@@ -7,6 +7,7 @@ export type NotificationType =
   | 'INTERVIEWED'
   | 'AI_SUGGESTION'
   | 'OFFERED'
+  | 'NEW_MESSAGE'
   | 'HIRED'
   | 'REJECTED'
   | 'SYSTEM';

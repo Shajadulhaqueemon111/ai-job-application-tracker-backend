@@ -30,6 +30,11 @@ router.get(
   authValidateRequest(USER_ROLE.hr, USER_ROLE.user, USER_ROLE.admin),
   JobControllers.getAllJobs,
 );
+router.get(
+  '/hr-jobs',
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user, USER_ROLE.admin),
+  JobControllers.getHrAllJobs,
+);
 
 // ---------------- GET SINGLE JOB ----------------
 router.get(

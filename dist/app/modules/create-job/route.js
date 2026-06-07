@@ -19,6 +19,7 @@ router.post('/create-job', (0, authValidation_1.default)(user_constant_1.USER_RO
 }, (0, validationRequest_1.default)(job_validationschema_1.JobZodValidationSchema.createJobValidationSchema), job_controller_1.JobControllers.createJob);
 // ---------------- GET ALL JOBS ----------------
 router.get('/', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr, user_constant_1.USER_ROLE.user, user_constant_1.USER_ROLE.admin), job_controller_1.JobControllers.getAllJobs);
+router.get('/hr-jobs', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr, user_constant_1.USER_ROLE.user, user_constant_1.USER_ROLE.admin), job_controller_1.JobControllers.getHrAllJobs);
 // ---------------- GET SINGLE JOB ----------------
 router.get('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr, user_constant_1.USER_ROLE.user), job_controller_1.JobControllers.getSingleJob);
 router.patch('/:id', (0, authValidation_1.default)(user_constant_1.USER_ROLE.hr), (0, validationRequest_1.default)(job_validationschema_1.JobZodValidationSchema.createJobValidationSchema), job_controller_1.JobControllers.updateJob);

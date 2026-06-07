@@ -19,7 +19,7 @@ import { upload } from './resume-upload';
 const route = express.Router();
 route.get(
   '/',
-  authValidateRequest(USER_ROLE.admin, USER_ROLE.hr),
+  authValidateRequest(USER_ROLE.admin, USER_ROLE.hr, USER_ROLE.user),
   getAllJobsApplication,
 );
 // Submit a job application

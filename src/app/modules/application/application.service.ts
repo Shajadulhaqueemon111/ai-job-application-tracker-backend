@@ -87,18 +87,17 @@ export const getAllJobsApplicationFromDB = async (query: any) => {
   };
 };
 
-export const deleteJobApplicationInDB = async (id: string) => {
-  const application = await JobApplication.findById(id);
+export const deleteApplicationFromDB = async (applicationId: string) => {
+  const application = await JobApplication.findById(applicationId);
+  if (!application) throw new Error('Application not found');
 
-  if (!application) {
-    throw new Error('Application not found');
-  }
+  await JobApplication.findByIdAndDelete(applicationId);
 
   await JobModel.findByIdAndUpdate(application.jobId, {
-    $inc: { applicationCount: -1 },
+    $inc: { totalApplicants: -1 },
   });
 
-  return await JobApplication.findByIdAndDelete(id);
+  return { message: 'Application deleted successfully' };
 };
 export const updateApplicationInDB = async (
   id: string,

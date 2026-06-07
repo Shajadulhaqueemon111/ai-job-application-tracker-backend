@@ -4,8 +4,9 @@ import { INotification } from './notification.interface';
 const notificationSchema = new Schema<INotification>(
   {
     userId: {
-      type: String,
-      default: null, // null = global
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
     type: {
       type: String,
@@ -17,6 +18,7 @@ const notificationSchema = new Schema<INotification>(
         'INTERVIEWED',
         'APPLICATION_STATUS_UPDATED',
         'OFFERED',
+        'NEW_MESSAGE',
         'HIRED',
         'REJECTED',
         'AI_SUGGESTION',

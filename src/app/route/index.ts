@@ -7,6 +7,7 @@ import { adminRoute } from '../modules/admin/admin.route';
 import { JobRoutes } from '../modules/create-job/route';
 import { HRRoutes } from '../modules/hr/hr-route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
+import { MessageRoutes } from '../modules/chat-message/router';
 
 const router = Router();
 const moduleRouter = [
@@ -37,6 +38,10 @@ const moduleRouter = [
   {
     path: '/notifications',
     route: NotificationRoutes,
+  },
+  {
+    path: '/messages',
+    route: MessageRoutes,
   },
 ];
 

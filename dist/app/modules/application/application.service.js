@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSingleApplicationFromDB = exports.getMyApplicationsFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteJobApplicationInDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
+exports.getSingleApplicationFromDB = exports.getMyApplicationsFromDB = exports.getUserApplicationsFromDB = exports.updateApplicationInDB = exports.deleteApplicationFromDB = exports.getAllJobsApplicationFromDB = exports.createApplicationInDB = void 0;
 const soket_1 = require("../../utils/soket");
 const job_modle_1 = require("../create-job/job.modle");
 const notification_model_1 = require("../notification/notification.model");
@@ -85,17 +85,17 @@ const getAllJobsApplicationFromDB = (query) => __awaiter(void 0, void 0, void 0,
     };
 });
 exports.getAllJobsApplicationFromDB = getAllJobsApplicationFromDB;
-const deleteJobApplicationInDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const application = yield application_modle_1.JobApplication.findById(id);
-    if (!application) {
+const deleteApplicationFromDB = (applicationId) => __awaiter(void 0, void 0, void 0, function* () {
+    const application = yield application_modle_1.JobApplication.findById(applicationId);
+    if (!application)
         throw new Error('Application not found');
-    }
+    yield application_modle_1.JobApplication.findByIdAndDelete(applicationId);
     yield job_modle_1.JobModel.findByIdAndUpdate(application.jobId, {
-        $inc: { applicationCount: -1 },
+        $inc: { totalApplicants: -1 },
     });
-    return yield application_modle_1.JobApplication.findByIdAndDelete(id);
+    return { message: 'Application deleted successfully' };
 });
-exports.deleteJobApplicationInDB = deleteJobApplicationInDB;
+exports.deleteApplicationFromDB = deleteApplicationFromDB;
 const updateApplicationInDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const application = yield application_modle_1.JobApplication.findById(id);

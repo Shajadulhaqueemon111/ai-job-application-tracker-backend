@@ -23,7 +23,7 @@ router.get(
 
 router.patch(
   '/:id/read',
-  authValidateRequest(USER_ROLE.admin, USER_ROLE.hr),
+  authValidateRequest(USER_ROLE.admin, USER_ROLE.hr, USER_ROLE.user),
   NotificationController.markAsRead,
 );
 

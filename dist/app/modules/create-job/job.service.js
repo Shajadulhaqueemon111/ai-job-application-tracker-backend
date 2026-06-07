@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobServices = void 0;
 const soket_1 = require("../../utils/soket");
+const application_modle_1 = require("../application/application.modle");
 const notification_model_1 = require("../notification/notification.model");
 const job_modle_1 = require("./job.modle");
 const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
@@ -33,11 +34,19 @@ const createJobIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function*
     }
     return result;
 });
-// const getAllJobsFromDB = async () => {
-//   const result = await JobModel.find();
-//   return result;
-// };
-const getAllJobsFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+// job.service.ts ফাইলের উদাহরণ
+const getAllJobsFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
+    const jobs = yield job_modle_1.JobModel.find().lean();
+    // প্রতি জবের জন্য রিয়েল-টাইম অ্যাপ্লিকেশন সংখ্যা গণনা করা
+    const updatedJobs = yield Promise.all(jobs.map((job) => __awaiter(void 0, void 0, void 0, function* () {
+        const activeApplicationsCount = yield application_modle_1.JobApplication.countDocuments({
+            jobId: job._id,
+        });
+        return Object.assign(Object.assign({}, job), { totalApplicants: activeApplicationsCount });
+    })));
+    return updatedJobs;
+});
+const getHrAllJobsFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield job_modle_1.JobModel.find({
         createdBy: userId,
     }).sort({ createdAt: -1 });
@@ -60,6 +69,7 @@ const deleteJobFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.JobServices = {
     createJobIntoDB,
+    getHrAllJobsFromDB,
     getAllJobsFromDB,
     getSingleJobFromDB,
     deleteJobFromDB,

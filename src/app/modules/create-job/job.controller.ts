@@ -59,9 +59,18 @@ const createJob = async (req: Request, res: Response) => {
 };
 
 const getAllJobs = async (req: Request, res: Response) => {
+  const result = await JobServices.getAllJobsFromDB();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Jobs retrieved successfully',
+    data: result,
+  });
+};
+const getHrAllJobs = async (req: Request, res: Response) => {
   const userId = req.user?._id; // 🔥 FIXED (_id not id)
 
-  const result = await JobServices.getAllJobsFromDB(userId);
+  const result = await JobServices.getHrAllJobsFromDB(userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -119,6 +128,7 @@ const updateJob = async (req: Request, res: Response) => {
 };
 export const JobControllers = {
   createJob,
+  getHrAllJobs,
   getAllJobs,
   getSingleJob,
   deleteJob,

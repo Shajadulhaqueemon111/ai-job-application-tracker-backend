@@ -3,7 +3,7 @@ import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import {
   createApplicationInDB,
-  deleteJobApplicationInDB,
+  deleteApplicationFromDB,
   getAllJobsApplicationFromDB,
   getMyApplicationsFromDB,
   getSingleApplicationFromDB,
@@ -87,7 +87,7 @@ export const getAllJobsApplication = catchAsync(async (req, res) => {
 });
 export const deleteJobApplication = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await deleteJobApplicationInDB(id);
+  const result = await deleteApplicationFromDB(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -78,7 +78,7 @@ exports.getAllJobsApplication = (0, catchAsync_1.default)((req, res) => __awaite
 }));
 exports.deleteJobApplication = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const result = yield (0, application_service_1.deleteJobApplicationInDB)(id);
+    const result = yield (0, application_service_1.deleteApplicationFromDB)(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
