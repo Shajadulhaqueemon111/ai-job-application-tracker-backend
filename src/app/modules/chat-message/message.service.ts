@@ -5,6 +5,7 @@ import AppError from '../../error/appError';
 import { getIO } from '../../utils/soket';
 import { NotificationModel } from '../notification/notification.model';
 import { JobApplication } from '../application/application.modle';
+import { Types } from 'mongoose';
 
 const sendMessage = async (payload: any) => {
   const result = await Message.create(payload);
@@ -34,17 +35,19 @@ const sendMessage = async (payload: any) => {
   return result;
 };
 const getConversation = async (applicationId: string, userId: string) => {
-  const application = await JobApplication.findById(applicationId);
+  const application = await JobApplication.findById(applicationId).populate<{
+    jobId: { createdBy: Types.ObjectId };
+  }>('jobId');
 
-  if (!application) {
+  if (!application || !application.userId) {
     throw new Error('Application not found');
   }
 
-  const isOwner =
-    application.userId?.toString() === userId ||
-    application.jobId?.toString() === userId; // HR side (if needed)
+  const isApplicant = application.userId.toString() === userId;
 
-  if (!isOwner) {
+  const isHR = application.jobId?.createdBy.toString() === userId;
+
+  if (!isApplicant && !isHR) {
     throw new Error('Not authorized');
   }
 
@@ -55,7 +58,6 @@ const getConversation = async (applicationId: string, userId: string) => {
 
   return messages;
 };
-
 const markAsRead = async (messageId: string) => {
   const message = await Message.findById(messageId);
 
