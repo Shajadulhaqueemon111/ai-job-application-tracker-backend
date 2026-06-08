@@ -8,22 +8,24 @@ import { JobApplication } from '../application/application.modle';
 import { Types } from 'mongoose';
 
 const sendMessage = async (payload: any) => {
+  // ১. ডাটাবেজে মেসেজ ক্রিয়েট করা
   const result = await Message.create(payload);
 
   const io = getIO();
 
-  // 🔥 realtime message
-  io.to(payload.receiverId.toString()).emit('receiveMessage', result);
+  io.to(payload.applicationId.toString()).emit('newMessage', result);
 
-  // 🔔 realtime notification
   io.to(payload.receiverId.toString()).emit('notification', {
     type: 'message',
     title: 'New Message',
     message: payload.message,
+    applicationId: payload.applicationId,
   });
+
+  // ডাটাবেজে নোটিফিকেশন সেভ করা
   try {
     await NotificationModel.create({
-      userId: payload.senderId, // 👈 sender will also get notification for their sent message
+      userId: payload.receiverId, // 👈 FIX: নোটিফিকেশন রিসিভার পাবে, সেন্ডার নিজে নয়!
       type: 'NEW_MESSAGE',
       title: 'New Message',
       message: payload.message,
@@ -32,6 +34,7 @@ const sendMessage = async (payload: any) => {
   } catch (err) {
     console.error('Notification create failed:', err);
   }
+
   return result;
 };
 const getConversation = async (applicationId: string, userId: string) => {
