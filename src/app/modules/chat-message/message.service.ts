@@ -8,7 +8,6 @@ import { JobApplication } from '../application/application.modle';
 import { Types } from 'mongoose';
 
 const sendMessage = async (payload: any) => {
-  // ১. ডাটাবেজে মেসেজ ক্রিয়েট করা
   const result = await Message.create(payload);
 
   const io = getIO();
@@ -22,10 +21,9 @@ const sendMessage = async (payload: any) => {
     applicationId: payload.applicationId,
   });
 
-  // ডাটাবেজে নোটিফিকেশন সেভ করা
   try {
     await NotificationModel.create({
-      userId: payload.receiverId, // 👈 FIX: নোটিফিকেশন রিসিভার পাবে, সেন্ডার নিজে নয়!
+      userId: payload.receiverId,
       type: 'NEW_MESSAGE',
       title: 'New Message',
       message: payload.message,

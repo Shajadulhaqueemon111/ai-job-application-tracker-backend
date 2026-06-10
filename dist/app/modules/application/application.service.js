@@ -44,23 +44,46 @@ const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.createApplicationInDB = createApplicationInDB;
 const getAllJobsApplicationFromDB = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const { page = 1, limit = 10, hrId, userId, jobId, search, status } = query;
+    // 💡 Here added applicationId from query parameters
+    const { page = 1, limit = 10, hrId, userId, jobId, search, status, applicationId, } = query;
     const skip = (Number(page) - 1) * Number(limit);
     const filter = {};
-    // 🔥 HR wise filter (IMPORTANT)
-    if (hrId) {
-        // HR → job relation
-        const jobs = yield job_modle_1.JobModel.find({ createdBy: hrId }).select('_id');
-        const jobIds = jobs.map((j) => j._id);
-        filter.jobId = { $in: jobIds };
-    }
+    /* ───────────────────────────────
+        🔥 Direct filters & ID filter
+    ─────────────────────────────── */
+    // 💡 If applicationId exists in query, explicitly filter by it
+    if (applicationId)
+        filter._id = applicationId;
     if (userId)
         filter.userId = userId;
     if (jobId)
         filter.jobId = jobId;
     if (status)
         filter.status = status;
-    // 🔥 search (name/email/phone)
+    /* ───────────────────────────────
+        🔥 HR wise filter
+    ─────────────────────────────── */
+    if (hrId) {
+        const jobs = yield job_modle_1.JobModel.find({ createdBy: hrId }).select('_id');
+        const jobIds = jobs.map((j) => j._id);
+        if (jobIds.length === 0) {
+            return {
+                data: [],
+                meta: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total: 0,
+                },
+            };
+        }
+        // applicationId থাকলে শুধু security check করবো
+        if (!applicationId) {
+            filter.jobId = { $in: jobIds };
+        }
+    }
+    /* ───────────────────────────────
+        🔥 Search (name/email/phone)
+    ─────────────────────────────── */
     if (search) {
         filter.$or = [
             { fullName: { $regex: search, $options: 'i' } },
@@ -68,19 +91,33 @@ const getAllJobsApplicationFromDB = (query) => __awaiter(void 0, void 0, void 0,
             { phone: { $regex: search, $options: 'i' } },
         ];
     }
+    /* ───────────────────────────────
+        📦 Query execution
+    ─────────────────────────────── */
     const data = yield application_modle_1.JobApplication.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
-        .populate('jobId', 'title company location salary jobType')
+        .populate({
+        path: 'jobId',
+        select: 'title company location salary workType employmentType createdBy',
+        populate: {
+            path: 'createdBy',
+            select: '_id name email avatar',
+        },
+    })
         .lean();
     const total = yield application_modle_1.JobApplication.countDocuments(filter);
+    /* ───────────────────────────────
+        📤 Response
+    ─────────────────────────────── */
     return {
         data,
         meta: {
             page: Number(page),
             limit: Number(limit),
             total,
+            totalPages: Math.ceil(total / Number(limit)),
         },
     };
 });
