@@ -36,7 +36,7 @@ const createApplicationInDB = (data) => __awaiter(void 0, void 0, void 0, functi
             userId: job.createdBy, // 👈 HR ID
             title: 'New Job Application',
             message: `${data.fullName} applied to your job: ${job.title}`,
-            type: 'APPLICATION',
+            type: 'APPLICATION_SUBMITTED',
             read: false,
         });
     }

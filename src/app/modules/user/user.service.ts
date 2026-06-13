@@ -33,11 +33,22 @@ const updateUserIntoDB = async (_id: string, payload: Partial<IUser>) => {
 };
 
 const deleteUserIntoDB = async (_id: string) => {
+  const user = await UserModel.findById(_id);
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.role === 'admin') {
+    throw new AppError(httpStatus.FORBIDDEN, 'Admin cannot be deleted');
+  }
+
   const result = await UserModel.findByIdAndUpdate(
     _id,
     { isDeleted: true },
     { new: true },
   );
+
   return result;
 };
 

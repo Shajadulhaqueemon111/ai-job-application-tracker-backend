@@ -66,10 +66,31 @@ const getUnreadMessages = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
+const getApplicationsWithMessages = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const result = await MessageService.getApplicationsWithMessages(userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Unread messages retrieved successfully',
+    data: result,
+  });
+};
+const getChatSummary = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const result = await MessageService.getChatSummary(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Chat summary fetched successfully',
+    data: result,
+  });
+});
 export const MessageController = {
   sendMessage,
   getConversation,
   markAsRead,
   getUnreadMessages,
+  getApplicationsWithMessages,
+  getChatSummary,
 };

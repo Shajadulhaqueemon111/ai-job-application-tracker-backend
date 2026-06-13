@@ -31,7 +31,7 @@ export const createApplicationInDB = async (data: IJobApplication) => {
       userId: job.createdBy, // 👈 HR ID
       title: 'New Job Application',
       message: `${data.fullName} applied to your job: ${job.title}`,
-      type: 'APPLICATION',
+      type: 'APPLICATION_SUBMITTED',
       read: false,
     });
   }

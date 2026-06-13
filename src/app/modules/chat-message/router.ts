@@ -20,7 +20,16 @@ router.get(
   authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
   MessageController.getConversation,
 );
-
+router.get(
+  '/active-applications/:userId',
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
+  MessageController.getApplicationsWithMessages,
+);
+router.get(
+  '/summary/:userId',
+  authValidateRequest(USER_ROLE.hr, USER_ROLE.user),
+  MessageController.getChatSummary,
+);
 router.patch(
   '/read/:messageId',
   authValidateRequest(USER_ROLE.hr, USER_ROLE.user),

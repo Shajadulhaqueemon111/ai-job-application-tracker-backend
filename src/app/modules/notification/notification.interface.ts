@@ -1,5 +1,6 @@
 export type NotificationType =
   | 'NEW_JOB'
+  | 'APPLICATION_SUBMITTED'
   | 'INTERVIEW'
   | 'APPLICATION_UPDATE'
   | 'SHORTLISTED'

@@ -39,6 +39,13 @@ const updateUserIntoDB = (_id, payload) => __awaiter(void 0, void 0, void 0, fun
     return result;
 });
 const deleteUserIntoDB = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_modle_1.default.findById(_id);
+    if (!user) {
+        throw new appError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    }
+    if (user.role === 'admin') {
+        throw new appError_1.default(http_status_1.default.FORBIDDEN, 'Admin cannot be deleted');
+    }
     const result = yield user_modle_1.default.findByIdAndUpdate(_id, { isDeleted: true }, { new: true });
     return result;
 });

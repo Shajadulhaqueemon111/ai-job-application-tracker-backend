@@ -89,10 +89,63 @@ const getUnreadMessages = async (userId: string) => {
 
   return result;
 };
+const getApplicationsWithMessages = async (userId: string) => {
+  // এই user related সব unique applicationId গুলো বের করো
+  const applicationIds = await Message.find({
+    $or: [{ senderId: userId }, { receiverId: userId }],
+  }).distinct('applicationId');
+
+  return applicationIds;
+};
+// ✅ এই function টা MessageService-এ add করো
+
+const getChatSummary = async (userId: string) => {
+  // এই user-এর সব applicationId বের করো
+  const applicationIds = await Message.find({
+    $or: [{ senderId: userId }, { receiverId: userId }],
+  }).distinct('applicationId');
+
+  // প্রতিটা applicationId-এর জন্য last message + unread count বের করো
+  const summaries = await Promise.all(
+    applicationIds.map(async (applicationId) => {
+      // last message
+      const lastMessage = await Message.findOne({ applicationId })
+        .sort({ createdAt: -1 })
+        .select('message senderId createdAt attachments')
+        .lean();
+
+      // unread count — যেগুলো আমার কাছে এসেছে কিন্তু পড়িনি
+      const unreadCount = await Message.countDocuments({
+        applicationId,
+        receiverId: userId,
+        isRead: false,
+      });
+
+      return {
+        applicationId: applicationId.toString(),
+        lastMessage: lastMessage
+          ? {
+              text: lastMessage.message,
+              time: lastMessage.createdAt,
+              fromMe: lastMessage.senderId?.toString() === userId,
+              hasAttachment:
+                Array.isArray(lastMessage.attachment) &&
+                lastMessage.attachment.length > 0,
+            }
+          : null,
+        unreadCount,
+      };
+    }),
+  );
+
+  return summaries;
+};
 
 export const MessageService = {
   sendMessage,
   getConversation,
   markAsRead,
   getUnreadMessages,
+  getApplicationsWithMessages,
+  getChatSummary,
 };

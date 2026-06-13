@@ -12,6 +12,7 @@ const notificationSchema = new Schema<INotification>(
       type: String,
       enum: [
         'NEW_JOB',
+        'APPLICATION_SUBMITTED',
         'INTERVIEW',
         'APPLICATION_UPDATE',
         'SHORTLISTED',
