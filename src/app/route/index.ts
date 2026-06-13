@@ -8,6 +8,7 @@ import { JobRoutes } from '../modules/create-job/route';
 import { HRRoutes } from '../modules/hr/hr-route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
 import { MessageRoutes } from '../modules/chat-message/router';
+import { AtsRoutes } from '../modules/ats-cheker/ats.route';
 
 const router = Router();
 const moduleRouter = [
@@ -42,6 +43,10 @@ const moduleRouter = [
   {
     path: '/messages',
     route: MessageRoutes,
+  },
+  {
+    path: '/ai-checker',
+    route: AtsRoutes,
   },
 ];
 

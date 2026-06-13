@@ -9,6 +9,7 @@ const route_1 = require("../modules/create-job/route");
 const hr_route_1 = require("../modules/hr/hr-route");
 const notification_route_1 = require("../modules/notification/notification.route");
 const router_1 = require("../modules/chat-message/router");
+const ats_route_1 = require("../modules/ats-cheker/ats.route");
 const router = (0, express_1.Router)();
 const moduleRouter = [
     {
@@ -42,6 +43,10 @@ const moduleRouter = [
     {
         path: '/messages',
         route: router_1.MessageRoutes,
+    },
+    {
+        path: '/ai-checker',
+        route: ats_route_1.AtsRoutes,
     },
 ];
 moduleRouter.forEach((route) => router.use(route.path, route.route));
